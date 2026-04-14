@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Calendário do Projeto</title>
+    <link rel="stylesheet" href="../style/calendar.css" />
+</head>
+
+<body>
+    <main class="project-calendar" aria-labelledby="calendar-title">
+        <!-- BLOCO: CABEÇALHO 
+             ========================================
+             Aqui mostramos:
+             - Título grande: "Calendário do Projeto"
+             - Subtítulo: pequeno texto explicando o que é
+        -->
+        <header class="topbar">
+            <h1 id="calendar-title">Calendário do Projeto</h1>
+            <p class="subtitle">Acompanhe tarefas por data e prazos críticos</p>
+        </header>
+
+        <!-- BLOCO: CONTROLES DE NAVEGAÇÃO
+             ========================================
+             É a barra com:
+             - Botão "Anterior" (volta um mês)
+             - Mês atual no meio (ex: "abril de 2026")
+             - Botão "Próximo" (avança um mês)
+             O JavaScript vai atualizar o mês aqui.
+        -->
+        <section class="calendar-controls" aria-label="Controles de calendário">
+            <button type="button" id="prevMonthBtn" aria-label="Mês anterior">Anterior</button>
+            <h2 id="currentMonthLabel">Mês/Ano</h2>
+            <button type="button" id="nextMonthBtn" aria-label="Próximo mês">Próximo</button>
+        </section>
+
+        <!-- BLOCO: ÁREA DE FEEDBACK
+             ========================================
+             Aqui aparecem mensagens de:
+             - "Carregando tarefas..." (quando a página está buscando dados)
+             - Mensagem de erro (se algo deu ruim na API)
+             - "Nenhuma tarefa encontrada" (se não houver tarefas)
+             O JavaScript controla o que mostra aqui.
+        -->
+        <section id="feedbackArea" aria-live="polite">
+            <p id="loadingState">Carregando tarefas...</p>
+        </section>
+
+        <!-- BLOCO: CALENDÁRIO MENSAL
+             ========================================
+             É o grid (grade) do calendário com:
+             - Primeira linha: dias da semana (Dom, Seg, Ter, etc)
+             - Resto: dias do mês (1 até 28, 29, 30 ou 31)
+             O JavaScript vai preencher os dias automaticamente.
+        -->
+        <section class="calendar-board" aria-label="Calendário mensal">
+            <ol class="weekdays" aria-hidden="true">
+                <li>Dom</li>
+                <li>Seg</li>
+                <li>Ter</li>
+                <li>Qua</li>
+                <li>Qui</li>
+                <li>Sex</li>
+                <li>Sáb</li>
+            </ol>
+
+            <ol id="calendarDays" class="days-grid" aria-label="Dias do mês">
+                <!-- Dias serão renderizados via JavaScript -->
+            </ol>
+        </section>
+    </main>
+
+    <script src="./calendar.js"></script>
+</body>
+
+</html>
