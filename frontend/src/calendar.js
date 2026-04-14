@@ -22,7 +22,10 @@ const calendarElements = {
     prevMonthBtn: document.getElementById('prevMonthBtn'),
     nextMonthBtn: document.getElementById('nextMonthBtn'),
     currentMonthLabel: document.getElementById('currentMonthLabel'),
-    loadingState: document.getElementById('loadingState')
+    loadingState: document.getElementById('loadingState'),
+    errorState: document.getElementById('errorState'),
+    emptyState: document.getElementById('emptyState'),
+    retryBtn: document.getElementById('retryBtn')
 };
 
 /* =====================================================
@@ -85,6 +88,27 @@ function renderCalendarDays() {
 renderCalendarDays();
 
 /* =====================================================
+   FUNÇÃO: Controlar Estados da Tela
+   ===================================================== 
+   O que faz: Mostra apenas o estado necessário por vez.
+   Estados possíveis:
+   - loading: carregando dados da API
+   - error: erro na requisição
+   - empty: sem tarefas para exibir
+   - success: dados carregados com sucesso
+*/
+
+function setViewState(state) {
+    const isLoading = state === 'loading';
+    const isError = state === 'error';
+    const isEmpty = state === 'empty';
+
+    calendarElements.loadingState.classList.toggle('hidden', !isLoading);
+    calendarElements.errorState.classList.toggle('hidden', !isError);
+    calendarElements.emptyState.classList.toggle('hidden', !isEmpty);
+}
+
+/* =====================================================
    FUNÇÃO: Carregar Tarefas da API
    ===================================================== 
    O que faz: Busca tarefas reais do servidor (sem inventar dados).
@@ -94,41 +118,44 @@ renderCalendarDays();
 */
 
 async function loadTasks() {
+    // Começa em loading toda vez que tenta buscar tarefas
+    setViewState('loading');
+
     try {
-        // Fazer requisição GET para obter tarefas
-        // fetch() = faz o pedido para a API
-        // await = espera a resposta chegar
-        // response = é o que a API devolveu
         const response = await fetch(`${API_BASE_URL}/tasks`, {
-            method: 'GET',  // ler dados (não criar, não deletar)
+            method: 'GET',
             headers: {
-                'x-team-token': TEAM_TOKEN  // mostra nossa senha
+                'x-team-token': TEAM_TOKEN
             }
         });
 
-        console.log('Status da resposta:', response.status);
-        console.log('Resposta completa:', response);
-
-        // Verificar se a resposta foi "ok" (status 200-299)
-        // Se não foi ok, significa que algo deu errado
         if (!response.ok) {
             throw new Error('Erro ao buscar tarefas');
         }
 
-        // response.json() = abre a "caixa" da API
-        // A API envia os dados embrulhados em JSON
-        // Essa linha desembrulha e transforma em objeto JavaScript
         const data = await response.json();
-        console.log('Dados recebidos da API:', data);
 
+        // Se API respondeu, mas veio sem tarefas
+        if (!Array.isArray(data) || data.length === 0) {
+            setViewState('empty');
+            return [];
+        }
+
+        // Se deu tudo certo e tem dados
+        setViewState('success');
+        return data;
     } catch (error) {
-        // Se algo deu errado em qualquer lugar acima, cai aqui
-        // console.error() = escreve o erro lindo no console
-        // Assim a page não quebra, só mostra o erro
         console.error('Falha na conexão com a API:', error);
+        setViewState('error');
+        return [];
     }
 }
 
 // Chamar a função para carregar tarefas assim que a página inicia
 // Sem isso, nada acontece automaticamente
 loadTasks();
+
+// Se der erro na API, o botão tenta carregar de novo
+calendarElements.retryBtn.addEventListener('click', () => {
+    loadTasks();
+});

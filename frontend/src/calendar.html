@@ -45,6 +45,13 @@
         -->
         <section id="feedbackArea" aria-live="polite">
             <p id="loadingState">Carregando tarefas...</p>
+
+            <div id="errorState" class="hidden" role="alert">
+                <p>Não foi possível carregar as tarefas agora.</p>
+                <button type="button" id="retryBtn">Tentar novamente</button>
+            </div>
+
+            <p id="emptyState" class="hidden">Nenhuma tarefa encontrada para este projeto.</p>
         </section>
 
         <!-- BLOCO: CALENDÁRIO MENSAL
