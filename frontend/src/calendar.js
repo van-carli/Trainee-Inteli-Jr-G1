@@ -9,6 +9,7 @@
 const API_BASE_URL = 'https://trainee-projetos-api.vercel.app';
 const TEAM_TOKEN = 'equipe-alpha-2026';
 let currentCalendarDate = new Date();
+let allTasks = [];
 
 /* =====================================================
     SELETORES DO DOM - REFERÊNCIAS AOS ELEMENTOS HTML
@@ -75,6 +76,20 @@ function renderCalendarDays() {
 
         calendarDaysContainer.appendChild(dayElement);
     }
+}
+
+/* =====================================================
+    FUNÇÃO: MUDAR O MÊS EXIBIDO
+    ===================================================== 
+    Recebe um valor positivo ou negativo e avança ou volta
+    o calendário. Depois atualiza título, dias e contadores.
+*/
+
+function changeCalendarMonth(offset) {
+    currentCalendarDate.setMonth(currentCalendarDate.getMonth() + offset);
+    updateMonthLabel();
+    renderCalendarDays();
+    renderTaskCounters(allTasks);
 }
 
 updateMonthLabel();
@@ -176,13 +191,16 @@ async function loadTasks() {
 
         // Se a API respondeu, mas veio sem tarefas
         if (!Array.isArray(data) || data.length === 0) {
+            allTasks = [];
+            renderTaskCounters([]);
             setViewState('empty');
             return [];
         }
 
         // Se deu tudo certo e vieram dados
+        allTasks = data;
         setViewState('success');
-        renderTaskCounters(data);
+        renderTaskCounters(allTasks);
         return data;
     } catch (error) {
         console.error('Falha na conexão com a API:', error);
@@ -198,4 +216,13 @@ loadTasks();
 // Se der erro na API, o botão tenta carregar novamente.
 calendarElements.retryBtn.addEventListener('click', () => {
     loadTasks();
+});
+
+// Navegação entre meses do calendário.
+calendarElements.prevMonthBtn.addEventListener('click', () => {
+    changeCalendarMonth(-1);
+});
+
+calendarElements.nextMonthBtn.addEventListener('click', () => {
+    changeCalendarMonth(1);
 });
