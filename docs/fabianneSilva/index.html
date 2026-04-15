@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,16 +11,17 @@
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
+
 <body class="app-body">
     <div class="dots-bg"></div>
-    
+
     <main class="app-container">
         <header class="app-header">
             <div class="header-logo-section">
                 <img class="logoIJ" src="./logo-ij.svg" alt="logoIJ">
                 <h1 class="app-title">Projeto 1</h1>
             </div>
-            
+
             <div class="header-actions-section">
                 <div class="search-wrapper">
                     <i data-lucide="search" class="search-icon"></i>
@@ -84,18 +86,22 @@
                     <i data-lucide="x" class="close-icon"></i>
                 </button>
             </div>
-            
+
             <form id="task-form" class="task-form">
                 <div class="form-group">
                     <label for="title" class="form-label">Título</label>
                     <input type="text" id="title" required class="form-input">
                 </div>
-                
+
                 <div class="form-group">
                     <label for="description" class="form-label">Descrição</label>
                     <textarea id="description" rows="3" class="form-input"></textarea>
+                    <!-- Botao que dispara a geracao automatica da descricao da tarefa com Gemini. -->
+                    <button type="button" id="btn-ai-description" class="btn-ai-description">
+                        ✨ Gerar descrição com Gemini
+                    </button>
                 </div>
-                
+
                 <div class="form-row">
                     <div class="form-group">
                         <label for="priority" class="form-label">Prioridade</label>
@@ -121,7 +127,7 @@
                         <input type="number" id="estimatedHours" required min="1" class="form-input">
                     </div>
                 </div>
-                
+
                 <button type="submit" class="btn-submit">
                     Criar Tarefa
                 </button>
@@ -131,4 +137,5 @@
 
     <script src="./kanban.js"></script>
 </body>
+
 </html>

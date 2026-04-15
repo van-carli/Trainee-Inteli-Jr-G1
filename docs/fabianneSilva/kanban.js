@@ -10,6 +10,10 @@ const headers = {
     'x-team-token': TEAM_TOKEN
 };
 
+// Configuracao da IA Gemini: chave de acesso e modelo usados para gerar texto.
+const GEMINI_API_KEY = 'AIzaSyD3u2RFRgeTAN1fIK16GA2H9WxQBrdq7uU';
+const GEMINI_MODEL = 'gemini-2.5-flash';
+
 let currentCalendarDate = new Date()
 
 // State
@@ -26,6 +30,10 @@ const taskForm = document.getElementById('task-form');
 const openModalBtn = document.getElementById('open-modal-btn');
 const closeModalBtn = document.getElementById('close-modal-btn');
 const searchInput = document.getElementById('search-input');
+// Referencias dos campos do modal para ler o titulo e preencher a descricao com IA.
+const aiDescriptionBtn = document.getElementById('btn-ai-description');
+const titleInput = document.getElementById('title');
+const descriptionInput = document.getElementById('description');
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
@@ -244,7 +252,7 @@ async function createTask(taskData) {
 
         console.log('Tarefa criada com sucesso:', responseData);
 
-        // 👇 pega só o objeto task
+        // pega só o objeto task
         const newTask = responseData.task;
 
         tasks.push(newTask);
@@ -254,6 +262,91 @@ async function createTask(taskData) {
         console.error('Erro na requisição:', error);
         alert('Erro ao criar tarefa. Verifique o console para mais detalhes.');
     }
+}
+
+// Faz a chamada para o Gemini e retorna uma descricao curta para a tarefa.
+async function generateDescriptionWithGemini(taskTitle) {
+    if (!GEMINI_API_KEY) {
+        throw new Error('Defina sua chave do Gemini em GEMINI_API_KEY.');
+    }
+
+    const prompt = `
+Voce e um assistente de gestao de projetos.
+Escreva uma descricao para um card de Kanban com base no titulo informado.
+Responda somente em portugues, em 2 frases completas, sem listas e sem quebrar linha.
+A descricao deve explicar objetivo e resultado esperado da tarefa.
+Titulo: ${taskTitle}
+`.trim();
+
+    const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`,
+        {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                contents: [
+                    {
+                        parts: [{ text: prompt }]
+                    }
+                ],
+                generationConfig: {
+                    temperature: 0.2,
+                    maxOutputTokens: 180
+                }
+            })
+        }
+    );
+
+    if (!response.ok) {
+        const errorBody = await response.text();
+        let errorMessage = errorBody;
+
+        try {
+            const parsedError = JSON.parse(errorBody);
+            errorMessage = parsedError?.error?.message || parsedError?.message || errorBody;
+        } catch (_) {
+            // Mantem o texto original quando a resposta nao for JSON.
+        }
+
+        throw new Error(`Gemini retornou erro ${response.status}: ${errorMessage}`);
+    }
+
+    const data = await response.json();
+    const parts = data?.candidates?.[0]?.content?.parts || [];
+
+    const rawText = parts
+        .map((part) => part?.text || '')
+        .join('')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+    const sentenceParts = (rawText.match(/[^.!?]+[.!?]?/g) || [])
+        .map((item) => item.trim())
+        .filter(Boolean);
+
+    const uniqueSentences = [];
+    sentenceParts.forEach((item) => {
+        const normalized = item.toLowerCase();
+        const alreadyExists = uniqueSentences.some((existing) => existing.toLowerCase() === normalized);
+        if (!alreadyExists) {
+            uniqueSentences.push(item);
+        }
+    });
+
+    let text = uniqueSentences.join(' ').replace(/\s+/g, ' ').trim();
+
+    const isBadText = !text || text.length < 40 || text.split(/\s+/).filter(Boolean).length < 8;
+    if (isBadText) {
+        text = `Esta tarefa tem como objetivo ${taskTitle.toLowerCase()} de forma organizada. Ao final, o card deve entregar uma implementacao funcional e validada para o fluxo do projeto.`;
+    }
+
+    if (!/[.!?]$/.test(text)) {
+        text = `${text}.`;
+    }
+
+    return text;
 }
 
 async function deleteTask(taskId) {
@@ -304,6 +397,33 @@ function setupEventListeners() {
     // Search
     searchInput.addEventListener('input', (e) => {
         renderTasks(e.target.value);
+    });
+
+    aiDescriptionBtn.addEventListener('click', async () => {
+        const title = titleInput.value.trim();
+
+        if (!title) {
+            alert('Digite o título da tarefa antes de gerar a descrição com IA.');
+            titleInput.focus();
+            return;
+        }
+
+        const originalButtonText = aiDescriptionBtn.textContent;
+
+        try {
+            aiDescriptionBtn.disabled = true;
+            aiDescriptionBtn.textContent = 'Gerando descrição...';
+
+            const generatedDescription = await generateDescriptionWithGemini(title);
+            descriptionInput.value = generatedDescription;
+            descriptionInput.focus();
+        } catch (error) {
+            console.error('Erro ao gerar descrição com Gemini:', error);
+            alert(error.message || 'Não foi possível gerar a descrição agora. Verifique a chave e tente novamente.');
+        } finally {
+            aiDescriptionBtn.disabled = false;
+            aiDescriptionBtn.textContent = originalButtonText;
+        }
     });
 
     // Drag and Drop for columns
