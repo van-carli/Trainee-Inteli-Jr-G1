@@ -42,6 +42,7 @@ async function createProject(projectData) {
 }
 
 // Função que desenha os projetos na tela
+// 3. Função que desenha os projetos na tela
 function renderProjects() {
     const grid = document.getElementById('projectsGrid');
     
@@ -52,9 +53,8 @@ function renderProjects() {
         const card = document.createElement('div');
         card.className = 'card';
         
-        // Define qual classe de Badge usar dependendo do status
+        // --- LÓGICA DO STATUS ---
         let badgeClass = 'badge-planejamento'; // Começa com cinza por padrão
-        
         if (project.status === 'Em andamento') {
             badgeClass = 'badge-media'; // Laranja
         } else if (project.status === 'Concluído') {
@@ -63,13 +63,31 @@ function renderProjects() {
             badgeClass = 'badge-alta'; // Vermelho
         }
 
-        // HTML interno do Card limpo, usando classes do CSS em vez de inline styles
+        // --- LÓGICA DA PRIORIDADE ---
+        let priorityClass = 'badge-baixa'; // Padrão azul
+        let priorityIcon = '🔽';
+        
+        if (project.priority === 'Alta') {
+            priorityClass = 'badge-alta';
+            priorityIcon = '🚩'; // ou ⚡
+        } else if (project.priority === 'Média') {
+            priorityClass = 'badge-media';
+            priorityIcon = '🔶'; 
+        } else if (project.priority === 'Baixa') {
+            priorityClass = 'badge-baixa';
+            priorityIcon = '🔷';
+        }
+
+        // HTML interno do Card
         card.innerHTML = `
             <div class="card-header">
                 <span class="card-id">#${project.id}</span>
-                <span class="badge ${badgeClass}">${project.status}</span>
+                <div style="display: flex; gap: 8px;">
+                    <span class="badge ${priorityClass}">${priorityIcon} ${project.priority}</span>
+                    <span class="badge ${badgeClass}">${project.status}</span>
+                </div>
             </div>
-
+            
             <h3 class="card-title">${project.name}</h3>
             
             <div class="card-subtitle">

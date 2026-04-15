@@ -270,6 +270,11 @@ body {
     color: #FF8655;
 }
 
+.badge-baixa {
+    background-color: rgba(59, 130, 246, 0.15); /* Fundo 15% Azul */
+    color: #3B82F6; /* Texto Azul brilhante */
+}
+
 .badge-planejamento {
     background-color: rgba(141, 151, 180, 0.15);
     color: var(--text-secondary);
