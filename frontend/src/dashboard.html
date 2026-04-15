@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard de Projetos - Inteli Júnior</title>
+    <link rel="stylesheet" href="/frontend/style/dashboard.css">
+  </head>
+  <body>
+    <!-- Main Content -->
+    <main class="main-content">
+      <header class="top-bar">
+        <div class="title-area">
+          <h1>Visão Geral - Projetos</h1>
+        </div>
+        <div class="actions">
+          <div class="search-container">
+            <span class="search-icon">⌕</span>
+            <input type="text" id="searchInput" placeholder="Buscar projeto pelo nome ou responsável ...">
+          </div>
+          <button id="btnOpenModal" class="btn-new">+ Novo projeto</button>
+        </div>
+      </header>
+
+      <div class="projects-grid" id="projectsGrid">
+        <!-- Dinamicamente preenchido -->
+      </div>
+    </main>
+
+    <!-- Modal -->
+    <div id="projectModal" class="modal-overlay">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Novo Projeto</h2>
+          <button id="btnCloseModal" class="btn-close">&times;</button>
+        </div>
+
+        <form id="projectForm" class="modal-form">
+          <div class="form-group">
+            <label for="name">Nome do Projeto</label>
+            <input type="text" id="name" name="name" required placeholder="Ex: Portal do Cliente">
+          </div>
+          <div class="form-group">
+            <label for="client">Cliente</label>
+            <input type="text" id="client" name="client" required placeholder="Ex: Empresa Alpha">
+          </div>
+          <div class="form-group">
+            <label for="description">Descrição</label>
+            <textarea id="description" name="description" required placeholder="Descreva o projeto..."></textarea>
+          </div>
+          <div class="form-row" style="display: flex; gap: 16px;">
+            <div class="form-group" style="flex: 1;">
+              <label for="status">Status</label>
+              <select id="status" name="status" required>
+                <option value="Planejamento">Planejamento</option>
+                <option value="Em andamento">Em andamento</option>
+                <option value="Em revisão">Em revisão</option>
+                <option value="Concluído">Concluído</option>
+              </select>
+            </div>
+            <div class="form-group" style="flex: 1;">
+              <label for="dueDate">Data de Entrega</label>
+              <input type="date" id="dueDate" name="dueDate" required>
+            </div>
+          </div>
+          <div class="form-row" style="display: flex; gap: 16px;">
+            <div class="form-group" style="flex: 1;">
+              <label for="owner">Proprietário</label>
+              <input type="text" id="owner" name="owner" required placeholder="Nome do responsável">
+            </div>
+            <div class="form-group" style="flex: 1;">
+              <label for="priority">Prioridade</label>
+              <select id="priority" name="priority" required>
+                <option value="Baixa">Baixa</option>
+                <option value="Média">Média</option>
+                <option value="Alta">Alta</option>
+              </select>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" id="btnCancel" class="btn-secondary">Cancelar</button>
+            <button type="submit" class="btn-primary">Criar Projeto</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <script type="module" src="/frontend/src/dashboard.js"></script>
+  </body>
+</html>
