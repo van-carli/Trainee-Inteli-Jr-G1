@@ -1,4 +1,4 @@
-const BASE_URL = 'https://api-ij-treinee.onrender.com';
+const BASE_URL = 'https://trainee-projetos-api.vercel.app';
 const ALL_TOKENS = ['equipe-alpha-2026', 'equipe-beta-2026', 'equipe-gamma-2026', 'equipe-delta-2026', 'equipe-epsilon-2026'];
 let chartInstances = {};
 
