@@ -17,7 +17,29 @@
              - Subtítulo: pequeno texto explicando o que é
         -->
         <header class="topbar">
-            <h1 id="calendar-title">Calendário do Projeto</h1>
+            <div class="topbar-row">
+                <h1 id="calendar-title">Calendário do Projeto</h1>
+
+                <div class="topbar-filters">
+                    <label class="deadline-filter" for="deadlineFilterSelect" aria-label="Filtrar tarefas por prazo">
+                        <span class="filter-icon" aria-hidden="true">⏳</span>
+                        <select id="deadlineFilterSelect">
+                            <option value="all">Todos os prazos</option>
+                            <option value="overdue">Atrasadas</option>
+                            <option value="soon">Até 3 dias</option>
+                            <option value="ok">Em dia</option>
+                            <option value="done">Concluídas</option>
+                        </select>
+                    </label>
+
+                    <label class="project-filter" for="projectFilterSelect" aria-label="Filtrar tarefas por projeto">
+                        <span class="filter-icon" aria-hidden="true">📁</span>
+                        <select id="projectFilterSelect">
+                            <option value="all">Todos os projetos</option>
+                        </select>
+                    </label>
+                </div>
+            </div>
             <p class="subtitle">Acompanhe tarefas por data e prazos críticos</p>
         </header>
 
@@ -76,7 +98,48 @@
                 <!-- Dias serão renderizados via JavaScript -->
             </ol>
         </section>
+
+        <section class="info-row" aria-label="Resumo de alertas">
+            <article class="panel compact-panel full-width-panel" aria-labelledby="deadline-alerts-title">
+                <h3 id="deadline-alerts-title">Alertas de Prazo</h3>
+                <p class="alerts-subtitle">As cores das bolinhas seguem esta classificação e o marcador "P" indica entrega de projeto.</p>
+                <div class="alerts-grid">
+                    <div class="mini-alert alert-overdue">
+                        <span class="mini-alert-label">Atrasadas</span>
+                        <strong id="alertOverdueCount" class="mini-alert-count">0</strong>
+                    </div>
+                    <div class="mini-alert alert-today">
+                        <span class="mini-alert-label">Até 3 dias</span>
+                        <strong id="alertSoonCount" class="mini-alert-count">0</strong>
+                    </div>
+                    <div class="mini-alert alert-soon">
+                        <span class="mini-alert-label">Em dia</span>
+                        <strong id="alertOkCount" class="mini-alert-count">0</strong>
+                    </div>
+                    <div class="mini-alert alert-ok">
+                        <span class="mini-alert-label">Concluídas</span>
+                        <strong id="alertDoneCount" class="mini-alert-count">0</strong>
+                    </div>
+                </div>
+            </article>
+        </section>
     </main>
+
+    <div id="dayTasksModal" class="modal-overlay hidden" role="dialog" aria-modal="true"
+        aria-labelledby="dayTasksModalTitle">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="dayTasksModalTitle">Tarefas do Dia</h3>
+                <button type="button" id="closeDayTasksModalBtn" class="btn-close" aria-label="Fechar modal">&times;</button>
+            </div>
+
+            <p id="dayTasksModalSubtitle" class="subtitle">Dia selecionado</p>
+
+            <ul id="dayTasksModalList" class="panel-list">
+                <li>Nenhuma tarefa para este dia.</li>
+            </ul>
+        </div>
+    </div>
 
     <script src="./calendar.js"></script>
 </body>
