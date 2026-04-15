@@ -1,0 +1,265 @@
+/* =====================================================
+   VARIÁVEIS DE IDENTIDADE VISUAL
+   ===================================================== 
+   Aqui a gente define cores, espaçamento e estilo
+   que usamos em toda a página. Usar variáveis facilita
+   mudar cores depois (a gente muda aqui e vale pra tudo).
+*/
+
+:root {
+    --bg-main: #05060f;
+    --bg-surface: #1c2133;
+    --text-main: #f5f6ff;
+    --text-muted: #8d97b4;
+    --accent: #ff2d20;
+    --accent-hover: #ff4d3a;
+    --border-soft: rgba(141, 151, 180, 0.25);
+    --radius: 12px;
+}
+
+/* =====================================================
+   RESET GLOBAL
+   ===================================================== 
+   O "reset" remove estilos padrão do navegador
+   que poderiam estragar nossa página.
+   Colocamos todos os elementos com margin 0 e padding 0.
+*/
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+/* =====================================================
+   CORPO DA PÁGINA (body)
+   ===================================================== 
+   É o fundo e a tipografia da página inteira.
+   - background: fundo escuro com gradiente legal
+   - color: cor do texto
+   - font-family: escolhemos uma fonte boa para ler
+   - padding: espaço nas laterais
+*/
+
+body {
+    min-height: 100vh;
+    background: linear-gradient(160deg, #05060f 0%, #050505 100%);
+    color: var(--text-main);
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    padding: 12px;
+}
+
+/* =====================================================
+   CONTAINER PRINCIPAL (.project-calendar)
+   ===================================================== 
+   É a "caixa" que envolve tudo.
+   - max-width: não deixa ficar muito largo (1000px)
+   - margin 0 auto: centraliza na página
+   - display grid: organiza os bloquinhos um embaixo do outro
+   - gap: espaço entre os blocos
+*/
+
+.project-calendar {
+    max-width: 1000px;
+    margin: 0 auto;
+    display: grid;
+    gap: 8px;
+}
+
+/* =====================================================
+   CABEÇALHO (.topbar h1 e .subtitle)
+   ===================================================== 
+   É a parte de cima que diz "Calendário do Projeto".
+   - h1: o título grande
+   - subtitle: texto pequeno embaixo explicando
+*/
+
+.topbar h1 {
+    font-size: 1.5rem;
+    margin-bottom: 4px;
+}
+
+.subtitle {
+    color: var(--text-muted);
+}
+
+/* =====================================================
+   CONTROLES DE NAVEGAÇÃO (.calendar-controls)
+   ===================================================== 
+   É a barra com os botões "Anterior" e "Próximo"
+   e o mês no meio. Display flex deixa um
+   botão de cada lado e o mês no meio.
+*/
+
+.calendar-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius);
+    padding: 8px 10px;
+}
+
+.calendar-controls button {
+    border: none;
+    background: var(--accent);
+    color: #f5f6ff;
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.calendar-controls button:hover {
+    background: var(--accent-hover);
+}
+
+#currentMonthLabel {
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+/* =====================================================
+   ÁREA DE FEEDBACK (#feedbackArea e #loadingState)
+   ===================================================== 
+   É a área que mostra as mensagens:
+   - "Carregando tarefas..."
+   - Avisos de erro
+   - Mensagem de vazio
+   Essa área aparece/desaparece conforme o estado da página.
+*/
+
+#feedbackArea {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius);
+    padding: 8px;
+    font-size: 0.9rem;
+}
+
+#loadingState {
+    color: var(--text-main);
+}
+
+/* =====================================================
+   UTILITÁRIOS (.hidden)
+   ===================================================== 
+   Classe helper (ajudante) para esconder elementos
+   quando a gente não precisa deles.
+   display: none = some da página completamente.
+*/
+
+.hidden {
+    display: none;
+}
+
+/* =====================================================
+   PAINÉIS (.panel, .panel h3, .panel-list)
+   ===================================================== 
+   Os "cards" que aparecem embaixo:
+   - Alertas de Prazo
+   - Tarefas por Pessoa
+   Cada um é um card com título e uma lista.
+*/
+
+.panel {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius);
+    padding: 14px;
+}
+
+.panel h3 {
+    margin-bottom: 10px;
+    font-size: 1rem;
+}
+
+.panel-list {
+    list-style: none;
+    display: grid;
+    gap: 8px;
+    color: var(--text-muted);
+}
+
+/* =====================================================
+   GRID DO CALENDÁRIO (.weekdays e .days-grid)
+   ===================================================== 
+   Tanto weekdays (dias da semana) quanto days-grid (dias do mês)
+   usam a mesma estrutura de grid:
+   - 7 colunas iguais (um para cada dia da semana)
+   - Espaço pequeno entre eles (gap)
+   Isso deixa o calendário em formato de grade mesmo.
+*/
+
+.weekdays,
+.days-grid {
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 6px;
+}
+
+.weekdays li {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 4px 0;
+}
+
+/* =====================================================
+   DIAS DO CALENDÁRIO (.days-grid li)
+   ===================================================== 
+   Estilo para cada dia que é renderizado no calendário.
+   Cada dia é um <li> com:
+   - Fundo cinzento (escuro da paleta)
+   - Borda suave
+   - Padding para não ficar apertado
+   - Centro o texto
+   - Hover: muda cor ao passar o mouse
+   - Cursor pointer: mostra que é clicável
+*/
+
+.days-grid li {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-soft);
+    border-radius: 6px;
+    padding: 8px 4px;
+    text-align: center;
+    font-weight: 500;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.days-grid li:hover {
+    background: var(--accent);
+    color: #f5f6ff;
+    border-color: var(--accent);
+}
+
+/* =====================================================
+   RESPONSIVIDADE (@media)
+   ===================================================== 
+   Quando a tela fica pequena (mobile, tablet),
+   a gente muda o estilo para ficar legal ali também.
+   - body padding menor: não apertamos o conteúdo
+   - buttons: deixa quebrar em várias linhas
+*/
+
+@media (max-width: 768px) {
+    body {
+        padding: 16px;
+    }
+
+    .calendar-controls {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+}
