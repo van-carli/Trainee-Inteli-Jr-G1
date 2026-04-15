@@ -234,14 +234,43 @@ body {
     transition: all 0.2s ease;
     min-height: 35px;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
+    gap: 4px;
+    position: relative;
+}
+
+.day-number {
+    font-size: 0.95rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.task-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    border-radius: 999px;
+    background: var(--accent);
+    color: #f5f6ff;
+    font-size: 0.72rem;
+    font-weight: 700;
+    line-height: 1;
 }
 
 .days-grid li:hover {
     background: var(--accent);
     color: #f5f6ff;
     border-color: var(--accent);
+}
+
+.days-grid li:hover .task-count {
+    background: #f5f6ff;
+    color: var(--accent);
 }
 
 /* =====================================================

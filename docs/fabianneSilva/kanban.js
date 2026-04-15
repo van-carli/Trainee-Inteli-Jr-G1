@@ -10,6 +10,8 @@ const headers = {
     'x-team-token': TEAM_TOKEN
 };
 
+let currentCalendarDate = new Date()
+
 // State
 let tasks = [];
 let draggedTaskId = null;
@@ -145,13 +147,13 @@ function createTaskCard(task) {
 
     // DELETE com confirmação
     card.querySelector('.delete-btn').addEventListener('click', (e) => {
-    e.stopPropagation();
+        e.stopPropagation();
 
-    const confirmBox = card.querySelector('.delete-confirm');
+        const confirmBox = card.querySelector('.delete-confirm');
 
-    if (confirmBox) return;
+        if (confirmBox) return;
 
-    card.innerHTML += `
+        card.innerHTML += `
         <div class="delete-confirm">
             Excluir tarefa?
 
@@ -162,16 +164,16 @@ function createTaskCard(task) {
         </div>
     `;
 
-    card.querySelector('.cancel').addEventListener('click', (e) => {
-        e.stopPropagation();
-        renderTasks(searchInput.value);
-    });
+        card.querySelector('.cancel').addEventListener('click', (e) => {
+            e.stopPropagation();
+            renderTasks(searchInput.value);
+        });
 
-    card.querySelector('.confirm').addEventListener('click', (e) => {
-        e.stopPropagation();
-        deleteTask(task.id);
+        card.querySelector('.confirm').addEventListener('click', (e) => {
+            e.stopPropagation();
+            deleteTask(task.id);
+        });
     });
-});
 
     return card;
 }
@@ -187,13 +189,13 @@ async function updateTaskStatus(taskId, newStatus) {
         });
 
         if (!response.ok) throw new Error('Falha ao atualizar status');
-        
+
         // Update local state
         const taskIndex = tasks.findIndex(t => t.id == taskId);
         if (taskIndex !== -1) {
             tasks[taskIndex].status = newStatus;
         }
-        
+
         renderTasks(searchInput.value);
     } catch (error) {
         console.error('Erro:', error);
@@ -237,7 +239,7 @@ async function createTask(taskData) {
             console.error('Erro retornado pela API:', errorData);
             throw new Error(`Falha ao criar tarefa: ${response.statusText}`);
         }
-        
+
         const responseData = await response.json();
 
         console.log('Tarefa criada com sucesso:', responseData);
@@ -322,7 +324,7 @@ function setupEventListeners() {
         dropZone.addEventListener('drop', (e) => {
             e.preventDefault();
             dropZone.classList.remove('drag-over');
-            
+
             if (draggedTaskId) {
                 updateTaskStatus(draggedTaskId, status);
             }
