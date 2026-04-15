@@ -226,3 +226,11 @@ calendarElements.prevMonthBtn.addEventListener('click', () => {
 calendarElements.nextMonthBtn.addEventListener('click', () => {
     changeCalendarMonth(1);
 });
+
+// Atualiza as tarefas quando o usuário volta para esta aba.
+// Isso garante que alterações feitas em outra tela apareçam no calendário.
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+        loadTasks();
+    }
+});
