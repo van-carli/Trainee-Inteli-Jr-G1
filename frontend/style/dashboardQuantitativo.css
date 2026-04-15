@@ -1,0 +1,256 @@
+/* Tela Dashboard - Versão Alpha Red */
+
+/* Importação da fonte para manter a consistência */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+:root {
+    --bg: #05060F;
+    --card: #0e1021;
+    --sidebar: #060a19;
+    --accent: #ff4d4d;
+    --accent-hover: #e64444;
+    --text-white: #ffffff;
+    --text-gray: #9ca3af;
+    --text-muted: #6b7280;
+    --border: rgba(255, 255, 255, 0.1);
+    --font-mono: 'JetBrains Mono', monospace;
+}
+
+* { 
+    margin: 0; 
+    padding: 0; 
+    box-sizing: border-box; 
+    font-family: var(--font-mono); /* Mudança para a fonte Mono do Kanban */
+}
+
+body { 
+    background: var(--bg); 
+    color: var(--text-white); 
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+/* Efeito de Pontos (Dots Background) conforme o Kanban */
+body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: radial-gradient(rgba(255, 77, 77, 0.15) 1.5px, transparent 1px);
+    background-size: 30px 30px;
+    z-index: -1;
+    pointer-events: none;
+}
+
+.dashboard-wrapper { display: flex; min-height: 100vh; position: relative; z-index: 10; }
+
+/* Sidebar Alpha Style */
+.sidebar { 
+    width: 260px; 
+    background: var(--sidebar); 
+    padding: 2rem; 
+    border-right: 1px solid var(--border);
+}
+
+.logo { margin-bottom: 3rem; text-align: center; }
+.logo img { max-width: 150px; height: auto; filter: drop-shadow(0 0 8px rgba(255, 77, 77, 0.3)); }
+
+.sidebar nav a { 
+    display: flex; 
+    align-items: center; 
+    gap: 12px; 
+    color: var(--text-gray); 
+    text-decoration: none; 
+    padding: 12px; 
+    border-radius: 8px; 
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.05em;
+}
+
+.sidebar nav a i { width: 1.25rem; }
+
+.sidebar nav a:hover {
+    color: var(--text-white);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.sidebar nav a.active { 
+    background: rgba(255, 77, 77, 0.1); 
+    color: var(--accent);
+    border: 1px solid rgba(255, 77, 77, 0.2);
+}
+
+/* Main Content */
+.content { flex: 1; padding: 3rem; }
+
+header h1 { 
+    font-size: 1.75rem; 
+    text-transform: uppercase; 
+    letter-spacing: -0.02em; 
+    margin-bottom: 0.5rem;
+}
+
+header p { color: var(--accent); font-size: 0.9rem; font-weight: 500; }
+
+/* Filter Area */
+.filter-area {
+    margin-bottom: 2rem;
+    background: var(--card);
+    padding: 1rem;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    border: 1px solid var(--border);
+}
+
+#teamSelect {
+    padding: 8px 16px; 
+    border-radius: 100px; /* Botão arredondado conforme o Kanban */
+    border: 1px solid var(--border);
+    background-color: var(--bg);
+    color: var(--text-white);
+    font-size: 0.85rem;
+    font-family: var(--font-mono);
+    cursor: pointer;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+#teamSelect:focus {
+    border-color: var(--accent);
+}
+
+/* Cards de Métricas */
+.metrics-grid { 
+    display: grid; 
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
+    gap: 1.5rem; 
+    margin-bottom: 2rem; 
+}
+
+.card { 
+    background: var(--card); 
+    padding: 1.5rem; 
+    border-radius: 12px; 
+    border: 1px solid var(--border);
+    transition: transform 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(255, 77, 77, 0.4);
+}
+
+.card-label { 
+    font-size: 0.75rem; 
+    color: var(--text-gray); 
+    font-weight: 500; 
+    text-transform: uppercase; 
+    letter-spacing: 0.1em;
+}
+
+.card h2 { 
+    font-size: 2.25rem; 
+    margin-top: 0.5rem; 
+    color: var(--text-white); 
+    font-family: var(--font-mono);
+}
+
+.card.alert h2 { color: var(--accent); }    
+.card.warning h2 { color: #ffa500; } /* Cor Media do Kanban */
+
+/* Containers de Gráficos */
+.charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+
+.chart-container {
+    background: var(--card);
+    padding: 2.2rem;
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    height: 400px; 
+    position: relative; 
+    width: 100%;
+}
+
+.chart-container h3 { 
+    margin-bottom: 1.5rem; 
+    font-size: 1rem; 
+    text-transform: uppercase;
+    margin-top: -20px;
+    text-align: center;
+    color: var(--accent);
+    letter-spacing: 2px;
+}
+
+.full-width-chart {
+    margin-top: 1.5rem;
+    width: 100%;
+}
+
+.chart-card {
+    background: var(--card);
+    padding: 2rem;
+    border-radius: 16px;
+    border: 1px solid var(--border);
+}
+
+.canvas-container-history {
+    position: relative;
+    height: 300px; 
+    width: 100%;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+#team-name {
+    margin-bottom: 30px;
+}
+
+#horizontalBars {
+    padding: 2.2rem;
+}
+
+#projectsChart {
+    margin-top: 20px;
+}
+
+/* Container que vai abrigar os múltiplos velocímetros */
+#projects-canvas-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); /* Organiza em colunas */
+    gap: 15px;
+    width: 100%;
+    height: 100%;
+    overflow-y: auto; /* Caso tenha muitos projetos, ele cria scroll interno */
+    padding: 10px;
+}
+
+/* Estilo para cada "mini-card" de velocímetro */
+.gauge-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 160px; /* Altura de cada mini gráfico */
+}
+
+.gauge-item canvas {
+    max-height: 100px !important;
+}
+
+.gauge-item span {
+    font-size: 10px;
+    text-align: center;
+    margin-top: -10px;
+    color: var(--text-gray);
+    text-transform: uppercase;
+    font-weight: bold;
+}

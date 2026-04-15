@@ -1,5 +1,5 @@
 // Configurações da sua API Local
-const API_URL = 'http://localhost:3000';
+const API_URL = 'https://api-ij-treinee.onrender.com';
 const TEAM_TOKEN = 'equipe-alpha-2026';
 
 let allProjects = [];
