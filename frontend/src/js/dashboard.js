@@ -55,7 +55,7 @@ function renderProjects() {
         card.onclick = () => {
             localStorage.setItem('currentProjectId', project.id);
             localStorage.setItem('currentProjectName', project.name);
-            window.location.href = './frontend/src/khanban.html'; 
+                window.location.href = './frontend/src/kanban.html'; 
         };
 
         // Lógica das cores dos Status

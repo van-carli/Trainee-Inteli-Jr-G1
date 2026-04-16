@@ -29,9 +29,10 @@ body {
 
 /* Ajuste local desta tela para encaixar melhor com a sidebar */
 body .main-content {
-    padding: 1rem 1.25rem;
+    padding: 0.55rem 1rem;
     min-height: 100dvh;
     display: flex;
+    align-items: stretch;
 }
 
 body::before {
@@ -47,9 +48,9 @@ body::before {
 .project-calendar {
     width: min(1280px, 100%);
     margin: 0 auto;
-    height: calc(100dvh - 2rem);
+    height: calc(100dvh - 0.4rem);
     display: grid;
-    gap: 8px;
+    gap: 12px;
     grid-template-rows: auto auto auto minmax(0, 1fr) auto;
     position: relative;
     z-index: 1;
@@ -121,14 +122,14 @@ body::before {
     background: var(--bg-surface);
     border: 1px solid var(--border-soft);
     border-radius: var(--radius);
-    padding: 7px 10px;
+    padding: 8px 12px;
 }
 
 .calendar-controls button {
     border: none;
     background: var(--accent);
     color: #f5f6ff;
-    padding: 7px 13px;
+    padding: 8px 15px;
     border-radius: 8px;
     cursor: pointer;
     font-weight: 600;
@@ -148,7 +149,7 @@ body::before {
     background: var(--bg-surface);
     border: 1px solid var(--border-soft);
     border-radius: var(--radius);
-    padding: 6px 10px;
+    padding: 8px 12px;
     font-size: 0.84rem;
 }
 
@@ -166,10 +167,10 @@ body::before {
     background: rgba(28, 33, 51, 0.45);
     border: 1px solid var(--border-soft);
     border-radius: var(--radius);
-    padding: 7px 9px;
+    padding: 9px 11px;
     display: grid;
     grid-template-rows: auto minmax(0, 1fr);
-    gap: 5px;
+    gap: 6px;
     overflow: hidden;
 }
 
@@ -178,12 +179,13 @@ body::before {
     list-style: none;
     display: grid;
     grid-template-columns: repeat(7, minmax(0, 1fr));
-    gap: 4px;
+    gap: 5px;
 }
 
 .days-grid {
-    align-content: start;
-    grid-auto-rows: minmax(42px, 1fr);
+    align-content: stretch;
+    height: 100%;
+    grid-auto-rows: 1fr;
 }
 
 .calendar-board .weekdays li {
@@ -204,7 +206,7 @@ body::before {
     font-size: 0.9rem;
     cursor: pointer;
     transition: all 0.2s ease;
-    min-height: 42px;
+    min-height: 0;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -310,7 +312,7 @@ body::before {
     background: var(--bg-surface);
     border: 1px solid var(--border-soft);
     border-radius: var(--radius);
-    padding: 10px;
+    padding: 12px;
 }
 
 .compact-panel h3,
@@ -329,17 +331,94 @@ body::before {
 .alerts-grid {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 7px;
+    gap: 10px;
 }
 
 .mini-alert {
     border: 1px solid rgba(141, 151, 180, 0.25);
     border-left: 3px solid transparent;
     border-radius: 8px;
-    padding: 8px;
+    padding: 10px;
     display: grid;
     gap: 2px;
     background: rgba(141, 151, 180, 0.06);
+}
+
+@media (min-width: 1100px) and (min-height: 700px) {
+    .project-calendar {
+        height: calc(100dvh - 0.2rem);
+        gap: 16px;
+    }
+
+    .calendar-controls {
+        padding: 10px 14px;
+    }
+
+    #feedbackArea {
+        padding: 10px 14px;
+    }
+
+    .calendar-board {
+        padding: 12px 14px;
+        gap: 10px;
+    }
+
+    .days-grid {
+        grid-auto-rows: 1fr;
+    }
+
+    .days-grid li {
+        min-height: 0;
+        padding: 10px 7px;
+    }
+
+    .panel {
+        padding: 16px;
+    }
+
+    .alerts-grid {
+        gap: 14px;
+    }
+
+    .mini-alert {
+        padding: 12px;
+    }
+}
+
+@media (min-height: 860px) {
+    .project-calendar {
+        gap: 12px;
+    }
+
+    .calendar-controls {
+        padding: 9px 13px;
+    }
+
+    #feedbackArea {
+        padding: 9px 13px;
+    }
+
+    .calendar-board {
+        padding: 11px 13px;
+        gap: 8px;
+    }
+
+    .days-grid {
+        grid-auto-rows: 1fr;
+    }
+
+    .days-grid li {
+        min-height: 0;
+        padding: 7px 6px;
+    }
+
+    .panel {
+        padding: 12px;
+    }
+
+    .alerts-grid {
+        gap: 10px;
+    }
 }
 
 @media (max-height: 760px) {

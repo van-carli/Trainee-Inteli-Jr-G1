@@ -78,8 +78,8 @@ function initSidebar() {
         }
     });
 
-    // SE estiver no kanban, ativa "Projetos IJ"
-    if (window.location.pathname.includes("khanban")) {
+    // Se estiver no kanban, ativa "Projetos IJ"
+    if (window.location.pathname.includes("kanban")) {
         const linkProjetos = document.getElementById("link-projetos");
         
         if (linkProjetos) {

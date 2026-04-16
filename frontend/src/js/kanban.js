@@ -15,8 +15,7 @@ const headers = {
 };
 
 // CONFIGURAÇÃO GEMINI (Copiada da versão funcional)
-const GEMINI_API_KEY = 'AIzaSyD3u2RFRgeTAN1fIK16GA2H9WxQBrdq7uU'; 
-const GEMINI_MODELS = ['gemini-2.0-flash'];
+const GEMINI_MODELS = ['gemini-2.5-flash'];
 const GEMINI_API_VERSIONS = ['v1beta', 'v1'];
 
 let tasks = [];
@@ -48,11 +47,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // --- LÓGICA DO GEMINI (IGUAL À VERSÃO FUNCIONAL) ---
 async function generateDescriptionWithGemini(taskTitle) {
-    const prompt = `Você é um assistente de gestão de projetos. Escreva uma descrição para um card de Kanban com base no título informado. Responda somente em português, em 2 frases completas, sem listas e sem quebrar linha. Título: ${taskTitle}`.trim();
+    const geminiApiKey = getGeminiApiKey();
+    if (!geminiApiKey) {
+        return generateLocalDescription(taskTitle);
+    }
+
+    const prompt = `Você é um assistente de gestão de projetos. Escreva uma descrição para um card de Kanban com base no título informado. Responda somente em português, com exatamente 2 frases completas, sem listas e sem quebrar linha. A resposta deve ter no mínimo 140 caracteres e terminar com ponto final. Título: ${taskTitle}`.trim();
 
     const requestBody = {
         contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { temperature: 0.2, maxOutputTokens: 180 }
+        generationConfig: { temperature: 0.2, maxOutputTokens: 260 }
     };
 
     let lastErrorMessage = '';
@@ -60,7 +64,7 @@ async function generateDescriptionWithGemini(taskTitle) {
 
     for (const apiVersion of GEMINI_API_VERSIONS) {
         for (const model of GEMINI_MODELS) {
-            const endpoint = `https://generativelanguage.googleapis.com/${apiVersion}/models/${model}:generateContent?key=${GEMINI_API_KEY}`;
+            const endpoint = `https://generativelanguage.googleapis.com/${apiVersion}/models/${model}:generateContent?key=${geminiApiKey}`;
 
             try {
                 const response = await fetch(endpoint, {
@@ -98,7 +102,7 @@ async function generateDescriptionWithGemini(taskTitle) {
                 const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
 
                 let text = rawText.replace(/\s+/g, ' ').trim();
-                if (text.length < 10) {
+                if (!isDescriptionComplete(text)) {
                     text = fallbackDescription;
                 }
                 return text;
@@ -115,6 +119,28 @@ async function generateDescriptionWithGemini(taskTitle) {
 function generateLocalDescription(taskTitle) {
     const cleanTitle = taskTitle.trim().toLowerCase();
     return `Esta tarefa tem como objetivo realizar ${cleanTitle} de forma organizada e alinhada aos critérios do projeto. Ao final, o resultado deve ser validado com o time para garantir qualidade e aderência ao prazo.`;
+}
+
+function getGeminiApiKey() {
+    const storedKey = localStorage.getItem('geminiApiKey');
+
+    if (storedKey && storedKey.trim()) {
+        return storedKey.trim();
+    }
+
+    const inputKey = prompt('Cole a chave da API do Gemini para gerar descrições:');
+    const normalizedKey = inputKey?.trim() || '';
+
+    if (normalizedKey) {
+        localStorage.setItem('geminiApiKey', normalizedKey);
+    }
+
+    return normalizedKey;
+}
+
+function isDescriptionComplete(text) {
+    if (!text || text.length < 80) return false;
+    return /[.!?]$/.test(text);
 }
 
 // --- LÓGICA DO KANBAN ---
@@ -194,6 +220,8 @@ function setupEventListeners() {
             aiDescriptionBtn.innerText = "Gerando...";
             const desc = await generateDescriptionWithGemini(title);
             descriptionInput.value = desc;
+        } catch (error) {
+            alert(error.message || 'Erro ao gerar descrição com Gemini.');
         } finally {
             aiDescriptionBtn.disabled = false;
             aiDescriptionBtn.innerText = "✨ Gerar descrição com Gemini";

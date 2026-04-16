@@ -70,6 +70,10 @@ web_modules/
 .env.*
 !.env.example
 
+# Gemini local secrets/config
+frontend/src/js/gemini.local.js
+frontend/src/js/*.local.js
+
 # parcel-bundler cache (https://parceljs.org/)
 .cache
 .parcel-cache
