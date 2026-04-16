@@ -1,4 +1,5 @@
-const BASE_URL = 'https://api-ij-treinee.onrender.com';
+// frontend/src/js/dashboardQuantitativo.js
+const BASE_URL = 'https://trainee-projetos-api.vercel.app';
 const ALL_TOKENS = ['equipe-alpha-2026', 'equipe-beta-2026', 'equipe-gamma-2026', 'equipe-delta-2026', 'equipe-epsilon-2026'];
 
 let chartInstances = {};
@@ -58,7 +59,7 @@ async function changeTeam() {
     if (val === "TODOS") {
         titleDisp.innerText = "VISÃO GERAL DA EMPRESA";
         localStorage.removeItem('currentProjectId');
-        await fetchAllData(); // <--- Lógica corrigida abaixo
+        await fetchAllData();
     } else {
         const proj = masterProjects.find(p => p.id == val);
         if (!proj) return;
@@ -156,13 +157,13 @@ function calculateMetricsFromTasks(tasks, totalProjs) {
         overdueTasks: overdue,
         highPriorityTasks: highPriority,
         tasksByStatus: tasksByStatus,
-        health: { text: healthText, class: healthClass } // Retorna a saúde
+        health: { text: healthText, class: healthClass }
     };
 }
 
 // 6. ATUALIZA INTERFACE
 function updateUI(metrics, projetos, isGeral) {
-    // Atualiza os cards (Note que totalProjects foi removido em favor do Health)
+    // Atualiza os cards
     const healthElem = document.getElementById('projectHealth');
     healthElem.innerText = metrics.health.text;
     healthElem.className = metrics.health.class; // Aplica a cor (Vermelho, Laranja ou Verde)

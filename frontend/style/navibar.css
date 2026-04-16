@@ -246,35 +246,23 @@ body {
     margin-left: var(--sidebar-width);
     flex-grow: 1;
     padding: 3rem;
+    min-height: 100vh;
     background-image: radial-gradient(rgba(255, 45, 32, 0.05) 1px, transparent 1px);
     background-size: 30px 30px;
     transition: margin-left var(--transition-speed) cubic-bezier(0.4, 0, 0.2, 1);
+    width: calc(100% - var(--sidebar-width));
     min-width: 0;
 }
 
-.sidebar.collapsed+.main-content {
+.sidebar.collapsed + .main-content {
     margin-left: var(--sidebar-collapsed-width);
+    width: calc(100% - var(--sidebar-collapsed-width));
 }
 
 h1 {
     font-size: 2.5rem;
     margin-bottom: 2rem;
     letter-spacing: -1px;
-}
-
-/* Todas as suas telas (main) devem ter essa classe */
-.main-content {
-    margin-left: 280px; /* Largura da sidebar aberta */
-    flex-grow: 1;
-    min-height: 100vh;
-    transition: margin-left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    padding: 2rem;
-    width: calc(100% - 280px);
-}
-
-.sidebar.collapsed + .main-content {
-    margin-left: 80px;
-    width: calc(100% - 80px);
 }
 
 /* Responsividade básica */

@@ -1,5 +1,5 @@
 // Configurações da API
-const API_URL = 'https://api-ij-treinee.onrender.com';
+const API_URL = 'https://trainee-projetos-api.vercel.app';
 // Pega o token da equipe selecionada (ou padrão Alpha)
 const TEAM_TOKEN = localStorage.getItem('selectedTeamToken') || 'equipe-alpha-2026';
 
