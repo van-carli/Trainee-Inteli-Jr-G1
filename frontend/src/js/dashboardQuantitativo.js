@@ -1,164 +1,200 @@
-// dashboardQuantitativo.js
 const BASE_URL = 'https://api-ij-treinee.onrender.com';
 const ALL_TOKENS = ['equipe-alpha-2026', 'equipe-beta-2026', 'equipe-gamma-2026', 'equipe-delta-2026', 'equipe-epsilon-2026'];
 
-// Mapeamento solicitado: Token -> Nome da Empresa (campo 'client' na API)
-const MAPEAMENTO_EMPRESAS = {
-    'equipe-alpha-2026': 'Empresa Alpha',
-    'equipe-beta-2026': 'Empresa Beta',
-    'equipe-gamma-2026': 'Clinica Central',
-    'equipe-delta-2026': 'Grupo Horizonte',
-    'equipe-epsilon-2026': 'Tech Support Co.' // Ajustado para bater com o dataset padrão
-};
-
 let chartInstances = {};
+let masterProjects = [];
+let refreshInterval;
 
-async function changeTeam() {
-    const val = document.getElementById('teamSelect').value;
+// 1. INICIALIZAÇÃO
+document.addEventListener('DOMContentLoaded', async () => {
+    if (typeof lucide !== 'undefined') lucide.createIcons();
     
-    // SINCRONIZAÇÃO: Salva o token para Kanban e Calendário
-    if (val !== "TODAS") {
-        localStorage.setItem('selectedTeamToken', val);
+    // Carrega a lista de projetos APENAS UMA VEZ
+    await loadDashboardProjects();
+    
+    // Inicia a atualização automática (5 segundos) apenas dos dados
+    startAutoRefresh();
+});
+
+// 2. CARREGA LISTA GLOBAL DE PROJETOS (SEM REPETIÇÃO)
+async function loadDashboardProjects() {
+    const select = document.getElementById('teamSelect');
+    if (!select) return;
+
+    select.innerHTML = '<option value="TODOS">Visão Geral (Todos os Projetos)</option>';
+    masterProjects = [];
+
+    // Conjunto para rastrear nomes de projetos já adicionados e evitar duplicatas
+    const projetosAdicionados = new Set();
+
+    for (const token of ALL_TOKENS) {
+        try {
+            const res = await fetch(`${BASE_URL}/projects`, { headers: { 'x-team-token': token } });
+            if (res.ok) {
+                const projs = await res.json();
+                projs.forEach(p => {
+                    // CHAVE ÚNICA: Nome do Projeto + Nome do Cliente
+                    const chaveUnica = `${p.name}-${p.client}`;
+
+                    if (!projetosAdicionados.has(chaveUnica)) {
+                        projetosAdicionados.add(chaveUnica);
+                        
+                        // Guardamos o token junto com o projeto
+                        masterProjects.push({ ...p, token });
+                        
+                        const opt = document.createElement('option');
+                        opt.value = p.id;
+                        opt.textContent = `${p.name} (${p.client})`;
+                        select.appendChild(opt);
+                    }
+                });
+            }
+        } catch (e) {
+            console.error(`Erro ao carregar projetos do token ${token}:`, e);
+        }
     }
-
-    document.getElementById('team-name').innerText = val === "TODAS" ? "VISÃO GERAL DA EMPRESA" : val.replace(/-/g, ' ').toUpperCase();
     
-    val === "TODAS" ? await fetchAllTeams() : await fetchDashboard(val);
+    const saved = localStorage.getItem('currentProjectId');
+    if (saved) {
+        select.value = saved;
+    }
+    
+    changeTeam();
 }
 
-// BUSCA DADOS DE UMA EQUIPE E FILTRA PELO NOME DA EMPRESA
-async function fetchDashboard(token) {
-    try {
-        const [resDash, resTasks, resProjs] = await Promise.all([
-            fetch(`${BASE_URL}/dashboard`, { headers: { 'x-team-token': token } }),
-            fetch(`${BASE_URL}/tasks`, { headers: { 'x-team-token': token } }),
-            fetch(`${BASE_URL}/projects`, { headers: { 'x-team-token': token } })
-        ]);
+// 3. MUDANÇA DE FILTRO
+async function changeTeam() {
+    const select = document.getElementById('teamSelect');
+    if (!select) return;
+    
+    const val = select.value;
+    const titleDisp = document.getElementById('team-name');
 
-        if (resDash.ok && resTasks.ok && resProjs.ok) {
-            const dash = await resDash.json();
+    if (val === "TODOS") {
+        titleDisp.innerText = "VISÃO GERAL DA EMPRESA";
+        localStorage.removeItem('currentProjectId');
+        await fetchAllData();
+    } else {
+        const proj = masterProjects.find(p => p.id == val);
+        if (!proj) return;
+
+        titleDisp.innerText = proj.name.toUpperCase();
+        
+        localStorage.setItem('currentProjectId', proj.id);
+        localStorage.setItem('currentProjectName', proj.name);
+        localStorage.setItem('selectedTeamToken', proj.token);
+        
+        await fetchSingleProjectData(proj);
+    }
+}
+
+// ... (As funções fetchSingleProjectData, fetchAllData e updateUI permanecem iguais)
+
+async function fetchSingleProjectData(project) {
+    try {
+        const resTasks = await fetch(`${BASE_URL}/tasks?projectId=${project.id}`, {
+            headers: { 'x-team-token': project.token }
+        });
+
+        if (resTasks.ok) {
             const tasks = await resTasks.json();
-            const projects = await resProjs.json();
-            
-            // FILTRO CRUCIAL: Pega apenas o projeto que pertence à empresa do token
-            const empresaAlvo = MAPEAMENTO_EMPRESAS[token];
-            const projetosFiltrados = projects.filter(p => p.client === empresaAlvo);
-            
-            updateUI(dash, projetosFiltrados, false);
+            const metrics = {
+                totalProjects: 1,
+                totalTasks: tasks.length,
+                overdueTasks: tasks.filter(t => t.status !== "Concluída" && new Date(t.dueDate) < new Date()).length,
+                highPriorityTasks: tasks.filter(t => t.priority === "Alta").length,
+                tasksByStatus: tasks.reduce((acc, t) => {
+                    acc[t.status] = (acc[t.status] || 0) + 1;
+                    return acc;
+                }, {})
+            };
+            updateUI(metrics, [project], false);
             processAndRenderActivity(tasks);
         }
-    } catch (e) { console.error("Erro ao carregar dashboard:", e); }
+    } catch (e) { console.error(e); }
 }
 
-// BUSCA E CONSOLIDA TUDO (VISÃO GERAL)
-async function fetchAllTeams() {
+async function fetchAllData() {
     let globalDash = { totalProjects: 0, totalTasks: 0, overdueTasks: 0, highPriorityTasks: 0, tasksByStatus: {} };
     let allTasks = [];
-    let allProjsFiltrados = [];
 
     for (const t of ALL_TOKENS) {
         try {
-            const [rD, rT, rP] = await Promise.all([
+            const [resD, resT] = await Promise.all([
                 fetch(`${BASE_URL}/dashboard`, { headers: { 'x-team-token': t } }),
-                fetch(`${BASE_URL}/tasks`, { headers: { 'x-team-token': t } }),
-                fetch(`${BASE_URL}/projects`, { headers: { 'x-team-token': t } })
+                fetch(`${BASE_URL}/tasks`, { headers: { 'x-team-token': t } })
             ]);
-
-            if (rD.ok) {
-                const d = await rD.json();
+            if (resD.ok) {
+                const d = await resD.json();
                 globalDash.totalProjects += d.totalProjects;
                 globalDash.totalTasks += d.totalTasks;
                 globalDash.overdueTasks += d.overdueTasks;
                 globalDash.highPriorityTasks += d.highPriorityTasks;
-                for (let k in d.tasksByStatus) globalDash.tasksByStatus[k] = (globalDash.tasksByStatus[k] || 0) + d.tasksByStatus[k];
+                for (let k in d.tasksByStatus) {
+                    globalDash.tasksByStatus[k] = (globalDash.tasksByStatus[k] || 0) + d.tasksByStatus[k];
+                }
             }
-            if (rT.ok) allTasks = allTasks.concat(await rT.json());
-            
-            // Na visão geral, também aplicamos o mapeamento para não duplicar projetos base
-            if (rP.ok) {
-                const projs = await rP.json();
-                const pFiltrado = projs.find(p => p.client === MAPEAMENTO_EMPRESAS[t]);
-                if (pFiltrado) allProjsFiltrados.push(pFiltrado);
+            if (resT.ok) {
+                const tasksList = await resT.json();
+                allTasks = allTasks.concat(tasksList);
             }
-        } catch (e) { console.warn("Falha no token:", t); }
+        } catch (e) { console.warn(e); }
     }
-    updateUI(globalDash, allProjsFiltrados, true);
+    updateUI(globalDash, masterProjects, true);
     processAndRenderActivity(allTasks);
 }
 
 function updateUI(dash, projetos, isGeral) {
-    document.getElementById('totalProjects').innerText = isGeral ? projetos.length : dash.totalProjects;
+    document.getElementById('totalProjects').innerText = dash.totalProjects;
     document.getElementById('totalTasks').innerText = dash.totalTasks;
     document.getElementById('overdueTasks').innerText = dash.overdueTasks;
     document.getElementById('highPriorityTasks').innerText = dash.highPriorityTasks;
 
     const container = document.getElementById('projects-canvas-container');
+    if (!container) return;
     container.innerHTML = ''; 
 
     if (isGeral) {
-        const media = Math.round(projetos.reduce((acc, p) => acc + p.progress, 0) / (projetos.length || 1));
+        const media = Math.round(projetos.reduce((acc, p) => acc + (p.progress || 0), 0) / (projetos.length || 1));
         const div = document.createElement('div');
-        div.className = 'gauge-item-geral'; // Agora tem o mesmo tamanho no CSS
+        div.className = 'gauge-item-geral';
         div.innerHTML = `<canvas id="gauge-geral"></canvas>`;
         container.appendChild(div);
-        renderGauge('gauge-geral', media, "MÉDIA DE PROGRESSO GERAL"); // Removi o parâmetro isBig
+        renderGauge('gauge-geral', media, "MÉDIA DE PROGRESSO TOTAL");
     } else {
         projetos.forEach((p, i) => {
             const div = document.createElement('div');
             div.className = 'gauge-item';
             div.innerHTML = `<canvas id="g-${i}"></canvas><span>${p.name}</span>`;
             container.appendChild(div);
-            renderGauge(`g-${i}`, p.progress, ""); // Todos serão "grandes" por padrão
+            renderGauge(`g-${i}`, p.progress, "");
         });
     }
 
-    // Gráfico de barras (mantém igual)
     const labels = Object.keys(dash.tasksByStatus);
-    const cores = labels.map(l => l==='Concluída'?'#00ff7f':l==='Em revisão'?'#ff4d4d':l==='Em andamento'?'#ffa500':'#3179dd');
+    const cores = labels.map(l => l==='Concluída'?'#00ff7f':l==='Em revisão'?'#ff4d4d':l==='Em andamento'?'#ffa500':'#448aec');
     renderChart('tasksChart', 'bar', labels, Object.values(dash.tasksByStatus), cores);
 }
-// --- FUNÇÕES DE RENDERIZAÇÃO (Mantidas conforme o padrão Alpha Red) ---
+
+// ... (Manter as funções renderGauge, renderChart e processAndRenderActivity iguais ao seu código anterior)
 
 function renderGauge(id, percent, sub) {
     const ctx = document.getElementById(id).getContext('2d');
     if (chartInstances[id]) chartInstances[id].destroy();
-    
     let col = percent > 80 ? '#00ff7f' : percent >= 35 ? '#ffa500' : '#ff4d4d';
-    
     chartInstances[id] = new Chart(ctx, {
         type: 'doughnut',
-        data: { 
-            datasets: [{ 
-                data: [percent, 100 - percent], 
-                backgroundColor: [col, '#1a1c2e'], 
-                circumference: 180, 
-                rotation: 270, 
-                cutout: '85%', // Aro mais fino para parecer maior
-                borderRadius: 5 
-            }] 
-        },
-        options: { 
-            responsive: true, 
-            maintainAspectRatio: false, 
-            layout: { padding: { bottom: 20 } },
-            plugins: { legend: { display: false }, tooltip: { enabled: false } } 
-        },
+        data: { datasets: [{ data: [percent, 100 - percent], backgroundColor: [col, '#1a1c2e'], circumference: 180, rotation: 270, cutout: '85%', borderRadius: 5 }] },
+        options: { responsive: true, maintainAspectRatio: false, layout: { padding: { bottom: 20 } }, plugins: { legend: { display: false }, tooltip: { enabled: false } } },
         plugins: [{
             afterDraw: (chart) => {
                 const { ctx, chartArea: { left, right, top, bottom } } = chart;
                 const cX = (left + right) / 2, cY = (top + bottom) * 0.85;
                 ctx.save();
                 ctx.fillStyle = '#fff';
-                // Fonte grandona para todos:
-                ctx.font = 'bold 40px "JetBrains Mono"'; 
-                ctx.textAlign = 'center'; 
-                ctx.fillText(`${percent}%`, cX, cY);
-                
-                if (sub) { 
-                    ctx.fillStyle = '#9ca3af'; 
-                    ctx.font = '12px "JetBrains Mono"'; 
-                    ctx.fillText(sub, cX, cY + 25); 
-                }
+                ctx.font = 'bold 40px "JetBrains Mono"';
+                ctx.textAlign = 'center'; ctx.fillText(`${percent}%`, cX, cY);
+                if (sub) { ctx.fillStyle = '#9ca3af'; ctx.font = '12px "JetBrains Mono"'; ctx.fillText(sub, cX, cY + 25); }
                 ctx.restore();
             }
         }]
@@ -182,9 +218,7 @@ function processAndRenderActivity(tasks) {
     const map = {}; mNames.forEach(m => map[m] = 0);
     tasks.forEach(t => { if(t.dueDate) map[mNames[new Date(t.dueDate).getMonth()]]++; });
     const ctx = document.getElementById('activityChart').getContext('2d');
-    const grad = ctx.createLinearGradient(0, 0, 0, 400); 
-    grad.addColorStop(0, 'rgba(255, 77, 77, 0.4)'); 
-    grad.addColorStop(1, 'rgba(255, 77, 77, 0)');
+    const grad = ctx.createLinearGradient(0, 0, 0, 400); grad.addColorStop(0, 'rgba(255, 77, 77, 0.4)'); grad.addColorStop(1, 'rgba(255, 77, 77, 0)');
     if (chartInstances['activityChart']) chartInstances['activityChart'].destroy();
     chartInstances['activityChart'] = new Chart(ctx, {
         type: 'line',
@@ -195,58 +229,15 @@ function processAndRenderActivity(tasks) {
     });
 }
 
-
-// --- LÓGICA DE ATUALIZAÇÃO AUTOMÁTICA ---
-
-let autoRefreshTimer; // Variável que guardará o temporizador
-
+// 8. AUTO-REFRESH
 function startAutoRefresh() {
-    // Limpa qualquer temporizador existente para não duplicar
-    stopAutoRefresh();
-
-    // Define um intervalo de 5 segundos (5000ms)
-    // Você pode aumentar para 10000 (10s) se achar muito rápido
-    autoRefreshTimer = setInterval(() => {
-        const val = document.getElementById('teamSelect').value;
-        console.log("🔄 Atualizando dados automaticamente...");
-        
-        // Chama a função de busca dependendo do filtro atual
-        if (val === "TODAS") {
-            fetchAllTeams();
-        } else {
-            fetchDashboard(val);
-        }
-    }, 5000); 
+    if (refreshInterval) clearInterval(refreshInterval);
+    refreshInterval = setInterval(() => {
+        // Atualiza apenas os DADOS, não a lista do dropdown
+        changeTeam();
+    }, 5000);
 }
 
-function stopAutoRefresh() {
-    if (autoRefreshTimer) {
-        clearInterval(autoRefreshTimer);
-    }
-}
-
-// Detector de Visibilidade: Só atualiza se o usuário estiver vendo a página
 document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible') {
-        console.log("👋 Bem-vindo de volta! Retomando atualização.");
-        changeTeam(); // Atualiza na hora ao voltar
-        startAutoRefresh(); // Reinicia o loop
-    } else {
-        console.log("💤 Aba em segundo plano. Pausando atualização.");
-        stopAutoRefresh(); // Para o loop
-    }
-});
-
-document.addEventListener('DOMContentLoaded', () => { 
-    lucide.createIcons();
-    
-    // Recupera o token salvo
-    const saved = localStorage.getItem('selectedTeamToken') || ALL_TOKENS[0];
-    document.getElementById('teamSelect').value = saved;
-    
-    // Carrega os dados pela primeira vez
-    changeTeam(); 
-
-    // INICIA O LOOP DE ATUALIZAÇÃO AUTOMÁTICA
-    startAutoRefresh();
+    document.visibilityState === 'visible' ? startAutoRefresh() : clearInterval(refreshInterval);
 });
