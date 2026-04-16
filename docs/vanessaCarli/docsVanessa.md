@@ -1,41 +1,57 @@
-# Documentação Individual: [Nome do seu Componente/Tela]
-**Responsável:** [Seu Nome Completo]
+# Documentação Individual: Dashboard de projetos
+**Responsável:** Vanessa Carli de Andrade
 
 ---
 
 ## 1. Wireframe
-> Descreva aqui a estrutura visual pensada para o componente antes da implementação.
 
-### Descrição do Design
-* **Ferramenta utilizada:** [Ex: Figma / Desenho à mão]
-* **Conceito:** [Explique brevemente por que você organizou os elementos dessa forma. Ex: "Foquei em um card de tarefa que prioriza a data de entrega para facilitar a gestão de tempo."]
+### Descrição do design
+* **Ferramenta utilizada:** Figma
+* **Conceito:** O design foi diretamente inspirado na identidade visual do site da Inteli Júnior, adotando uma estética Dark Mode moderna, tecnológica e voltada para a produtividade. A paleta de cores foca em tons escuros para o fundo, com contrastes fortes em branco para leitura e o vermelho característico da Inteli Júnior como cor de destaque (botões, barras de progresso e background texturizado com pontos).
+* **Organização:** A interface apresentada no wireframe foca na funcionalidade do Dashboard. Nota-se uma barra de navegação lateral (sidebar) que foi incluída no design apenas como um guia conceitual para o avaliador compreender a visão futura do projeto, não fazendo parte da implementação atual.
+
+* **Estrutura do Dashboard:**
+
+    * Barra Superior: Contém o título "Visão Geral", um campo de busca para filtrar projetos e o botão de ação principal "+ Novo projeto".
+
+    * Grid de Projetos: Os projetos são organizados em uma malha de cards retangulares que priorizam a hierarquia da informação.
+
+    * Design do Card: Cada card apresenta, no canto superior direito, duas tags para identificação rápida de Prioridade e Status. O corpo do card exibe o Nome do Projeto em destaque, o Nome da Empresa/Cliente e uma Descrição detalhada do escopo.
+
+    * Interface de Cadastro: Ao acionar o botão de criação, uma janela sobreposta é aberta, contendo um formulário estruturado para coletar todos os dados necessários do novo projeto de forma organizada.
 
 ### Visual do Wireframe
-![Legenda da Imagem](link-da-sua-imagem-ou-caminho-do-arquivo)
+![Dashboard de projetos desenhado no Figma](wireframe-dashboard.png)
 
 ---
 
-## 2. Funcionalidades do Componente
+## 2. Funcionalidades do componente desenvolvido
 
-* **Ação principal:** [Ex: Exibir uma lista de tarefas filtradas por status.]
+* **Ação principal:** Listagem dinâmica de projetos e gerenciamento de novos cadastros através de uma interface intuitiva.
+
 * **Interações:**
-    * [Ex: Botão de "Concluir" que muda o estilo do card.]
-    * [Ex: Hover no card para mostrar descrição detalhada.]
-    * [Ex: Clique no avatar do usuário para ver perfil.]
+    * **Busca e Filtragem:** O usuário pode filtrar os cards em tempo real através da barra de pesquisa por nome do projeto ou responsável.
 
+    * **Criação de Projetos:** Abertura de uma janela de formulário ao clicar em "+ Novo projeto", permitindo o input de dados como cliente, descrição, prioridade e prazos.
+
+    * **Feedback Visual:** Efeitos de hover nos cards para indicar interatividade e barras de progresso que refletem o status atual de cada entrega.
 ---
 
 ## 3. Dependências Necessárias
-> O que o componente precisa para existir e funcionar corretamente?
 
-**Exemplo:** 
+* **Estrutura:** HTML5 semântico (uso de tags como <main>, <section>, e <header>).
 
-* **Estrutura:** HTML5 semântico.
-* **Estilização:** CSS3 (Variáveis de cores, Flexbox/Grid).
-* **Dados (API):** O componente consome os seguintes campos da API:
-    * `GET /tasks`: `title`, `deadline`, `status`.
-    * `GET /users`: `name`, `avatar_url`.
-* **Bibliotecas Externas:** [Ex: FontAwesome para ícones / Google Fonts].
+* **Estilização:** CSS3 puro, utilizando:
+
+* **CSS Variables:** Para padronização das cores institucionais.
+
+* **CSS Grid:** Para a organização responsiva da malha de projetos.
+
+* **Flexbox:** Para o alinhamento interno dos elementos do card e a estruturação do formulário no modal.
+
+* **Comportamento:** JavaScript Vanilla (ES6+) para manipulação do DOM, controle de abertura/fechamento do modal e lógica de renderização dos cards com base em dados.
+
+* **Tipografia:** Google Fonts (JetBrains Mono) para manter a estética técnica e moderna.
 
 ---
 
@@ -43,11 +59,12 @@
 
 **Exemplo:**
 
-* **Ferramenta utilizada:** [Ex: ChatGPT-4o]
+* **Ferramenta utilizada:** Gemini
 * **Finalidade:** [Seja específico. Exemplos abaixo:]
-    * *Ex 1: "Utilizei para gerar a estrutura básica do CSS Grid para o layout responsivo."*
-    * *Ex 2: "Solicitei sugestões de acessibilidade (leitura de tela) para os botões do componente."*
-    * *Ex 3: "Não utilizei ferramentas de IA para este componente."*
-* **Reflexão:** [Ex: "A IA ajudou a acelerar a escrita do CSS, mas precisei ajustar manualmente os seletores para manter a organização do código."]
+    * **Refatoração de Layout:** Suporte no ajuste de CSS para garantir que a barra de pesquisa e os títulos estivessem perfeitamente alinhados, além de remover elementos visuais duplicados ou desnecessários.
+    * **Lógica de Badges:** Auxílio na criação da lógica JavaScript que atribui cores e textos específicos às etiquetas de status e prioridade dentro dos cards.
+    * **Refino de UI:** Sugestões de propriedades CSS para polir o acabamento visual da interface e garantir que o design se assemelhasse ao padrão da Inteli Júnior.
+    * **Documentação:** Auxílio na criação da estrutura e revisão do texto.
+* **Reflexão:** O uso da IA foi fundamental para acelerar o desenvolvimento das regras de estilo e resolver pequenos erros de alinhamento. Ela permitiu que eu focasse na experiência do usuário e na organização da informação, enquanto as sugestões técnicas garantiram que o código seguisse boas práticas de layout
 
 ---
