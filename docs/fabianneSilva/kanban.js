@@ -1,119 +1,101 @@
-/**
- * Kanban Alpha - Core Logic
- */
-
+// ===== CONFIG DA API =====
 const API_BASE_URL = 'https://trainee-projetos-api.vercel.app';
 const TEAM_TOKEN = 'equipe-alpha-2026';
 
+// Headers padrão para todas as requisições
 const headers = {
     'Content-Type': 'application/json',
     'x-team-token': TEAM_TOKEN
 };
 
-// Configuracao da IA Gemini: chave de acesso e modelo usados para gerar texto.
-const GEMINI_API_KEY = 'AIzaSyD3u2RFRgeTAN1fIK16GA2H9WxQBrdq7uU';
-const GEMINI_MODEL = 'gemini-2.5-flash';
-
-let currentCalendarDate = new Date()
-
-// State
+// ===== ESTADO =====
+// Lista de tarefas carregadas da API
 let tasks = [];
+// Guarda o id da tarefa sendo arrastada (drag and drop)
 let draggedTaskId = null;
 
-// DOM Elements
+// ===== DOM =====
 const colTodo = document.getElementById('col-todo');
 const colDoing = document.getElementById('col-doing');
 const colReview = document.getElementById('col-review');
 const colDone = document.getElementById('col-done');
+
 const taskModal = document.getElementById('task-modal');
 const taskForm = document.getElementById('task-form');
+
 const openModalBtn = document.getElementById('open-modal-btn');
 const closeModalBtn = document.getElementById('close-modal-btn');
-const searchInput = document.getElementById('search-input');
-// Referencias dos campos do modal para ler o titulo e preencher a descricao com IA.
-const aiDescriptionBtn = document.getElementById('btn-ai-description');
-const titleInput = document.getElementById('title');
-const descriptionInput = document.getElementById('description');
 
-// Initialize
+const searchInput = document.getElementById('search-input');
+
+// ===== INIT =====
+// Carrega tarefas e eventos ao abrir a página
 document.addEventListener('DOMContentLoaded', () => {
     fetchTasks();
     setupEventListeners();
 });
 
-/**
- * Fetch all tasks from API
- */
+// ===== API =====
+// Busca todas as tarefas
 async function fetchTasks() {
     try {
         const response = await fetch(`${API_BASE_URL}/tasks`, { headers });
+
         if (!response.ok) throw new Error('Falha ao buscar tarefas');
+
         tasks = await response.json();
         renderTasks();
     } catch (error) {
         console.error('Erro:', error);
-        alert('Erro ao carregar tarefas. Verifique a conexão.');
+        alert('Erro ao carregar tarefas.');
     }
 }
 
-/**
- * Render tasks into columns
- */
+// ===== RENDER =====
+// Renderiza tarefas nas colunas (com filtro opcional)
 function renderTasks(filter = '') {
-    // Clear columns
+    // Limpa colunas antes de renderizar
     [colTodo, colDoing, colReview, colDone].forEach(col => col.innerHTML = '');
 
     const filteredTasks = tasks.filter(task => {
         const search = filter.toLowerCase();
 
-        const matchesText =
+        // Filtra por título, responsável ou prioridade
+        return (
             (task.title?.toLowerCase() || '').includes(search) ||
-            (task.assignee?.toLowerCase() || '').includes(search);
-
-        const matchesPriority =
-            (task.priority?.toLowerCase() || '').includes(search);
-
-        return matchesText || matchesPriority;
+            (task.assignee?.toLowerCase() || '').includes(search) ||
+            (task.priority?.toLowerCase() || '').includes(search)
+        );
     });
 
     filteredTasks.forEach(task => {
         const card = createTaskCard(task);
 
+        // Envia para coluna correta pelo status
         switch (task.status) {
-            case 'A fazer':
-                colTodo.appendChild(card);
-                break;
-            case 'Em andamento':
-                colDoing.appendChild(card);
-                break;
-            case 'Em revisão':
-                colReview.appendChild(card);
-                break;
-            case 'Concluída':
-                colDone.appendChild(card);
-                break;
+            case 'A fazer': colTodo.appendChild(card); break;
+            case 'Em andamento': colDoing.appendChild(card); break;
+            case 'Em revisão': colReview.appendChild(card); break;
+            case 'Concluída': colDone.appendChild(card); break;
         }
     });
 
-    // Re-initialize Lucide icons for new elements
-    if (window.lucide) {
-        window.lucide.createIcons();
-    }
+    // Reaplica ícones (necessário após innerHTML)
+    if (window.lucide) window.lucide.createIcons();
 }
 
-/**
- * Create a task card element
- */
+// Cria o card HTML de uma tarefa
 function createTaskCard(task) {
     const card = document.createElement('div');
     card.className = 'task-card';
     card.draggable = true;
     card.dataset.id = task.id;
 
+    // Gera classe CSS da prioridade (ex: priority-alta)
     const priority = task.priority || 'Média';
     const priorityClass = `priority-${priority
         .toLowerCase()
-        .normalize("NFD")
+        .normalize("NFD") // remove acentos
         .replace(/[\u0300-\u036f]/g, "")}`;
 
     card.innerHTML = `
@@ -142,7 +124,7 @@ function createTaskCard(task) {
         </div>
     `;
 
-    // Drag
+    // ===== DRAG =====
     card.addEventListener('dragstart', () => {
         card.classList.add('dragging');
         draggedTaskId = task.id;
@@ -153,30 +135,30 @@ function createTaskCard(task) {
         draggedTaskId = null;
     });
 
-    // DELETE com confirmação
+    // ===== DELETE COM CONFIRMAÇÃO =====
     card.querySelector('.delete-btn').addEventListener('click', (e) => {
         e.stopPropagation();
 
-        const confirmBox = card.querySelector('.delete-confirm');
-
-        if (confirmBox) return;
+        // Evita duplicar caixa de confirmação
+        if (card.querySelector('.delete-confirm')) return;
 
         card.innerHTML += `
-        <div class="delete-confirm">
-            Excluir tarefa?
-
-            <div class="delete-actions">
-                <button class="cancel">Cancelar</button>
-                <button class="confirm">Excluir</button>
+            <div class="delete-confirm">
+                Excluir tarefa?
+                <div class="delete-actions">
+                    <button class="cancel">Cancelar</button>
+                    <button class="confirm">Excluir</button>
+                </div>
             </div>
-        </div>
-    `;
+        `;
 
+        // Cancela exclusão (re-renderiza)
         card.querySelector('.cancel').addEventListener('click', (e) => {
             e.stopPropagation();
             renderTasks(searchInput.value);
         });
 
+        // Confirma exclusão
         card.querySelector('.confirm').addEventListener('click', (e) => {
             e.stopPropagation();
             deleteTask(task.id);
@@ -185,9 +167,8 @@ function createTaskCard(task) {
 
     return card;
 }
-/**
- * Update task status via API
- */
+
+// Atualiza status (drag and drop)
 async function updateTaskStatus(taskId, newStatus) {
     try {
         const response = await fetch(`${API_BASE_URL}/tasks/${taskId}/status`, {
@@ -196,159 +177,58 @@ async function updateTaskStatus(taskId, newStatus) {
             body: JSON.stringify({ status: newStatus })
         });
 
-        if (!response.ok) throw new Error('Falha ao atualizar status');
+        if (!response.ok) throw new Error();
 
-        // Update local state
-        const taskIndex = tasks.findIndex(t => t.id == taskId);
-        if (taskIndex !== -1) {
-            tasks[taskIndex].status = newStatus;
-        }
+        // Atualiza localmente para evitar novo fetch
+        const task = tasks.find(t => t.id == taskId);
+        if (task) task.status = newStatus;
 
         renderTasks(searchInput.value);
-    } catch (error) {
-        console.error('Erro:', error);
+    } catch {
         alert('Erro ao atualizar tarefa.');
-        fetchTasks(); // Revert to server state
+        fetchTasks(); // fallback
     }
 }
 
-/**
- * Create new task via API (POST /tasks)
- */
+// Cria nova tarefa
 async function createTask(taskData) {
-    // 3. Validação: Não permitir envio se o título estiver vazio
-    if (!taskData.title || taskData.title.trim() === '') {
-        console.error('Erro: O título da tarefa é obrigatório.');
-        alert('O título da tarefa é obrigatório.');
+    // Validação básica
+    if (!taskData.title?.trim()) {
+        alert('Título obrigatório');
         return;
     }
 
     try {
-        // 1. Garantir que o fetch está correto (method, headers)
         const response = await fetch(`${API_BASE_URL}/tasks`, {
             method: 'POST',
             headers,
-            // 2. Garantir que o body contém TODOS os campos obrigatórios
             body: JSON.stringify({
-                projectId: 1, // Fixo conforme requisito
+                projectId: 1,
                 title: taskData.title,
                 description: taskData.description,
-                status: 'A fazer', // Fixo conforme requisito
+                status: 'A fazer',
                 priority: taskData.priority,
                 assignee: taskData.assignee,
                 dueDate: taskData.dueDate,
-                estimatedHours: Number(taskData.estimatedHours) // Garantir que é número
+                estimatedHours: Number(taskData.estimatedHours)
             })
         });
 
-        // 4. Tratar resposta da API corretamente usando res.ok
-        if (!response.ok) {
-            const errorData = await response.json();
-            console.error('Erro retornado pela API:', errorData);
-            throw new Error(`Falha ao criar tarefa: ${response.statusText}`);
-        }
+        if (!response.ok) throw new Error();
 
-        const responseData = await response.json();
+        const newTask = (await response.json()).task;
 
-        console.log('Tarefa criada com sucesso:', responseData);
-
-        // pega só o objeto task
-        const newTask = responseData.task;
-
+        // Atualiza estado local
         tasks.push(newTask);
+
         renderTasks(searchInput.value);
         closeModal();
-    } catch (error) {
-        console.error('Erro na requisição:', error);
-        alert('Erro ao criar tarefa. Verifique o console para mais detalhes.');
+    } catch {
+        alert('Erro ao criar tarefa.');
     }
 }
 
-// Faz a chamada para o Gemini e retorna uma descricao curta para a tarefa.
-async function generateDescriptionWithGemini(taskTitle) {
-    if (!GEMINI_API_KEY) {
-        throw new Error('Defina sua chave do Gemini em GEMINI_API_KEY.');
-    }
-
-    const prompt = `
-Voce e um assistente de gestao de projetos.
-Escreva uma descricao para um card de Kanban com base no titulo informado.
-Responda somente em portugues, em 2 frases completas, sem listas e sem quebrar linha.
-A descricao deve explicar objetivo e resultado esperado da tarefa.
-Titulo: ${taskTitle}
-`.trim();
-
-    const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`,
-        {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                contents: [
-                    {
-                        parts: [{ text: prompt }]
-                    }
-                ],
-                generationConfig: {
-                    temperature: 0.2,
-                    maxOutputTokens: 180
-                }
-            })
-        }
-    );
-
-    if (!response.ok) {
-        const errorBody = await response.text();
-        let errorMessage = errorBody;
-
-        try {
-            const parsedError = JSON.parse(errorBody);
-            errorMessage = parsedError?.error?.message || parsedError?.message || errorBody;
-        } catch (_) {
-            // Mantem o texto original quando a resposta nao for JSON.
-        }
-
-        throw new Error(`Gemini retornou erro ${response.status}: ${errorMessage}`);
-    }
-
-    const data = await response.json();
-    const parts = data?.candidates?.[0]?.content?.parts || [];
-
-    const rawText = parts
-        .map((part) => part?.text || '')
-        .join('')
-        .replace(/\s+/g, ' ')
-        .trim();
-
-    const sentenceParts = (rawText.match(/[^.!?]+[.!?]?/g) || [])
-        .map((item) => item.trim())
-        .filter(Boolean);
-
-    const uniqueSentences = [];
-    sentenceParts.forEach((item) => {
-        const normalized = item.toLowerCase();
-        const alreadyExists = uniqueSentences.some((existing) => existing.toLowerCase() === normalized);
-        if (!alreadyExists) {
-            uniqueSentences.push(item);
-        }
-    });
-
-    let text = uniqueSentences.join(' ').replace(/\s+/g, ' ').trim();
-
-    const isBadText = !text || text.length < 40 || text.split(/\s+/).filter(Boolean).length < 8;
-    if (isBadText) {
-        text = `Esta tarefa tem como objetivo ${taskTitle.toLowerCase()} de forma organizada. Ao final, o card deve entregar uma implementacao funcional e validada para o fluxo do projeto.`;
-    }
-
-    if (!/[.!?]$/.test(text)) {
-        text = `${text}.`;
-    }
-
-    return text;
-}
-
+// Deleta tarefa
 async function deleteTask(taskId) {
     try {
         const response = await fetch(`${API_BASE_URL}/tasks/${taskId}`, {
@@ -356,83 +236,53 @@ async function deleteTask(taskId) {
             headers
         });
 
-        if (!response.ok) throw new Error('Erro ao deletar tarefa');
+        if (!response.ok) throw new Error();
 
-        // remove do estado local
+        // Remove do estado local
         tasks = tasks.filter(t => t.id != taskId);
 
         renderTasks(searchInput.value);
-
-    } catch (error) {
-        console.error(error);
+    } catch {
         alert('Erro ao excluir tarefa');
     }
 }
 
-/**
- * Event Listeners
- */
+// ===== EVENTOS =====
 function setupEventListeners() {
-    // Modal toggle
+    // Modal (abrir/fechar)
     openModalBtn.addEventListener('click', openModal);
     closeModalBtn.addEventListener('click', closeModal);
-    taskModal.addEventListener('click', (e) => {
+
+    // Fecha clicando fora
+    taskModal.addEventListener('click', e => {
         if (e.target === taskModal) closeModal();
     });
 
-    // Form submission
-    taskForm.addEventListener('submit', (e) => {
+    // Submit do formulário
+    taskForm.addEventListener('submit', e => {
         e.preventDefault();
-        const formData = {
-            title: document.getElementById('title').value,
-            description: document.getElementById('description').value,
-            priority: document.getElementById('priority').value,
-            assignee: document.getElementById('assignee').value,
-            dueDate: document.getElementById('dueDate').value,
-            estimatedHours: document.getElementById('estimatedHours').value
-        };
-        createTask(formData);
+
+        createTask({
+            title: title.value,
+            description: description.value,
+            priority: priority.value,
+            assignee: assignee.value,
+            dueDate: dueDate.value,
+            estimatedHours: estimatedHours.value
+        });
     });
 
-    // Search
-    searchInput.addEventListener('input', (e) => {
+    // Busca dinâmica
+    searchInput.addEventListener('input', e => {
         renderTasks(e.target.value);
     });
 
-    aiDescriptionBtn.addEventListener('click', async () => {
-        const title = titleInput.value.trim();
-
-        if (!title) {
-            alert('Digite o título da tarefa antes de gerar a descrição com IA.');
-            titleInput.focus();
-            return;
-        }
-
-        const originalButtonText = aiDescriptionBtn.textContent;
-
-        try {
-            aiDescriptionBtn.disabled = true;
-            aiDescriptionBtn.textContent = 'Gerando descrição...';
-
-            const generatedDescription = await generateDescriptionWithGemini(title);
-            descriptionInput.value = generatedDescription;
-            descriptionInput.focus();
-        } catch (error) {
-            console.error('Erro ao gerar descrição com Gemini:', error);
-            alert(error.message || 'Não foi possível gerar a descrição agora. Verifique a chave e tente novamente.');
-        } finally {
-            aiDescriptionBtn.disabled = false;
-            aiDescriptionBtn.textContent = originalButtonText;
-        }
-    });
-
-    // Drag and Drop for columns
-    const columns = document.querySelectorAll('.kanban-column');
-    columns.forEach(column => {
+    // Drag & drop nas colunas
+    document.querySelectorAll('.kanban-column').forEach(column => {
         const dropZone = column.querySelector('.column-cards');
         const status = column.dataset.status;
 
-        dropZone.addEventListener('dragover', (e) => {
+        dropZone.addEventListener('dragover', e => {
             e.preventDefault();
             dropZone.classList.add('drag-over');
         });
@@ -441,7 +291,7 @@ function setupEventListeners() {
             dropZone.classList.remove('drag-over');
         });
 
-        dropZone.addEventListener('drop', (e) => {
+        dropZone.addEventListener('drop', e => {
             e.preventDefault();
             dropZone.classList.remove('drag-over');
 
@@ -452,6 +302,7 @@ function setupEventListeners() {
     });
 }
 
+// ===== MODAL =====
 function openModal() {
     taskModal.classList.remove('hidden');
     document.getElementById('title').focus();

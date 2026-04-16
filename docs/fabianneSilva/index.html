@@ -2,31 +2,46 @@
 <html lang="pt-br">
 
 <head>
+    <!-- Configurações básicas -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Título da aba -->
     <title>Kanban</title>
+
+    <!-- CSS principal -->
     <link rel="stylesheet" href="./style.css">
-    <!-- Google Fonts -->
+
+    <!-- Fonte usada no projeto -->
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@100..800&display=swap" rel="stylesheet">
-    <!-- Lucide Icons -->
+
+    <!-- Biblioteca de ícones -->
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 
 <body class="app-body">
+    <!-- Fundo decorativo -->
     <div class="dots-bg"></div>
 
     <main class="app-container">
+
+        <!-- ===== HEADER ===== -->
         <header class="app-header">
             <div class="header-logo-section">
-                <img class="logoIJ" src="./logo-ij.svg" alt="logoIJ">
                 <h1 class="app-title">Projeto 1</h1>
             </div>
 
+            <!-- Ações: busca + botão -->
             <div class="header-actions-section">
                 <div class="search-wrapper">
                     <i data-lucide="search" class="search-icon"></i>
-                    <input type="text" id="search-input" placeholder="Busque uma palavra..." class="search-input">
+                    <input 
+                        type="text" 
+                        id="search-input" 
+                        placeholder="Busque uma palavra..." 
+                        class="search-input">
                 </div>
+
                 <button id="open-modal-btn" class="btn-primary">
                     <i data-lucide="plus" class="btn-icon"></i>
                     Nova tarefa
@@ -34,52 +49,57 @@
             </div>
         </header>
 
+        <!-- ===== BOARD KANBAN ===== -->
         <div class="kanban-board">
-            <!-- A Fazer -->
+
+            <!-- Coluna: A Fazer -->
             <div class="kanban-column" data-status="A fazer">
                 <div class="column-header">
                     <h2 class="column-title">A Fazer</h2>
                 </div>
                 <div class="column-cards" id="col-todo">
-                    <!-- Cards will be injected here -->
+                    <!-- Cards inseridos via JS -->
                 </div>
             </div>
 
-            <!-- Em andamento -->
+            <!-- Coluna: Em andamento -->
             <div class="kanban-column" data-status="Em andamento">
                 <div class="column-header">
                     <h2 class="column-title">Fazendo</h2>
                 </div>
                 <div class="column-cards" id="col-doing">
-                    <!-- Cards will be injected here -->
+                    <!-- Cards inseridos via JS -->
                 </div>
             </div>
 
-            <!-- Em revisão -->
+            <!-- Coluna: Em revisão -->
             <div class="kanban-column" data-status="Em revisão">
                 <div class="column-header">
                     <h2 class="column-title">Revisão</h2>
                 </div>
                 <div class="column-cards" id="col-review">
-                    <!-- Cards will be injected here -->
+                    <!-- Cards inseridos via JS -->
                 </div>
             </div>
 
-            <!-- Concluída -->
+            <!-- Coluna: Concluída -->
             <div class="kanban-column" data-status="Concluída">
                 <div class="column-header">
                     <h2 class="column-title">Feito</h2>
                 </div>
                 <div class="column-cards" id="col-done">
-                    <!-- Cards will be injected here -->
+                    <!-- Cards inseridos via JS -->
                 </div>
             </div>
+
         </div>
     </main>
 
-    <!-- Modal for New Task -->
+    <!-- ===== MODAL (CRIAR TAREFA) ===== -->
     <div id="task-modal" class="modal-overlay hidden">
         <div class="modal-content" id="modal-content">
+
+            <!-- Cabeçalho do modal -->
             <div class="modal-header">
                 <h3 class="modal-title">Nova Tarefa</h3>
                 <button id="close-modal-btn" class="btn-close">
@@ -87,21 +107,16 @@
                 </button>
             </div>
 
+            <!-- Formulário de criação -->
             <form id="task-form" class="task-form">
+
+                <!-- Título -->
                 <div class="form-group">
                     <label for="title" class="form-label">Título</label>
                     <input type="text" id="title" required class="form-input">
                 </div>
 
-                <div class="form-group">
-                    <label for="description" class="form-label">Descrição</label>
-                    <textarea id="description" rows="3" class="form-input"></textarea>
-                    <!-- Botao que dispara a geracao automatica da descricao da tarefa com Gemini. -->
-                    <button type="button" id="btn-ai-description" class="btn-ai-description">
-                        ✨ Gerar descrição com Gemini
-                    </button>
-                </div>
-
+                <!-- Linha: prioridade + responsável -->
                 <div class="form-row">
                     <div class="form-group">
                         <label for="priority" class="form-label">Prioridade</label>
@@ -111,30 +126,36 @@
                             <option value="Alta">Alta</option>
                         </select>
                     </div>
+
                     <div class="form-group">
                         <label for="assignee" class="form-label">Responsável</label>
                         <input type="text" id="assignee" required class="form-input">
                     </div>
                 </div>
 
+                <!-- Linha: data + horas -->
                 <div class="form-row">
                     <div class="form-group">
                         <label for="dueDate" class="form-label">Data de Entrega</label>
                         <input type="date" id="dueDate" required class="form-input">
                     </div>
+
                     <div class="form-group">
-                        <label for="estimatedHours" class="form-label">Horas Estimas</label>
+                        <label for="estimatedHours" class="form-label">Horas Estimadas</label>
                         <input type="number" id="estimatedHours" required min="1" class="form-input">
                     </div>
                 </div>
 
+                <!-- Botão de envio -->
                 <button type="submit" class="btn-submit">
                     Criar Tarefa
                 </button>
+
             </form>
         </div>
     </div>
 
+    <!-- Script principal -->
     <script src="./kanban.js"></script>
 </body>
 
