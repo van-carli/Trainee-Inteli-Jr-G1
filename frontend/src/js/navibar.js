@@ -1,4 +1,4 @@
-// frontend/src/js/sidebar.js
+// frontend/src/js/navibar.js
 
 function initSidebar() {
     // 1. Identifica a localização atual para calcular os caminhos

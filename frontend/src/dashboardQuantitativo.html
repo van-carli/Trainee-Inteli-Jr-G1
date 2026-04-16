@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,13 +13,12 @@
     <!-- Lucide para ícones -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="../style/navibar.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body>
-    <main class="main-content">
-    <div class="dashboard-wrapper">
-        <main class="content">
-            <header>
+    <div class="main-content">
+        <div class="dashboard-wrapper">
+            <div class="content">
                 <div>
                     <h1>Métricas do Projeto</h1>
                     <p id="team-name">Equipe Alpha 2026</p>
@@ -63,7 +62,7 @@
             <div class="charts-grid">
                 <div class="chart-container">
                     <h3>Projetos por Status</h3>
-                    <div id="projects-canvas-container"><img src="../../" alt=""></div> 
+                    <div id="projects-canvas-container"><canvas id="projectsChart"></canvas></div> 
                 </div>
                 <div class="chart-container">
                     <h3>Distribuição de Tarefas</h3>
@@ -79,9 +78,9 @@
                     </div>
                 </div>
             </section>
-        </main>
+        </div>
     </div>
-    </main>
+</div>
 
     <script type="module" src="./js/navibar.js"></script>
     <script src="./js/dashboardQuantitativo.js"></script>

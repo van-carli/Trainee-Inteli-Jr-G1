@@ -2,7 +2,7 @@
  * Kanban Alpha - Versão Integrada e Funcional com Gemini
  */
 
-const API_BASE_URL = 'https://api-ij-treinee.onrender.com';
+const API_BASE_URL = 'https://trainee-projetos-api.vercel.app';
 
 // PEGA DADOS DO PROJETO SELECIONADO NA TELA INDEX
 const TEAM_TOKEN = localStorage.getItem('selectedTeamToken') || 'equipe-alpha-2026';
