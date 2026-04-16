@@ -2,7 +2,7 @@
  * Kanban Alpha - Core Logic
  */
 
-const API_BASE_URL = 'https://api-ij-treinee.onrender.com';
+const API_BASE_URL = 'https://trainee-projetos-api.vercel.app';
 const TEAM_TOKEN = 'equipe-alpha-2026';
 
 const headers = {
