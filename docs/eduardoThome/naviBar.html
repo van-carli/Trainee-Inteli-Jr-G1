@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <!-- Configurações básicas -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inteli Júnior - Dashboard</title>
+
+    <!-- Estilos e Fontes -->
+    <link rel="stylesheet" href="naviBar.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+
+    <!-- BARRA LATERAL (NAVIBAR) -->
+    <nav class="sidebar" id="sidebar">
+        <!-- Cabeçalho da navibar: Logo e Botão de Recolher -->
+        <div class="sidebar-header">
+            <div class="logo-container">
+                <img src="logoIj.svg" alt="Inteli Júnior Logo">
+            </div>
+            <button class="toggle-btn" id="toggle-btn">
+                <i class="fa-solid fa-columns"></i>
+            </button>
+        </div>
+
+        <!-- Links de Navegação -->
+        <ul class="nav-links">
+            <li class="nav-item active">
+                <a href="naviBar.html" class="nav-link">
+                    <i class="fa-solid fa-chart-line"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="projetos.html" class="nav-link">
+                    <i class="fa-solid fa-briefcase"></i>
+                    <span>Projetos IJ</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">
+                    <i class="fa-solid fa-calendar-days"></i>
+                    <span>Calendário</span>
+                </a>
+            </li>
+        </ul>
+
+        <!-- Indicador de Status da API -->
+        <div class="status-container">
+            <div class="status-dot" id="api-status"></div>
+            <div class="status-info">
+                <span>API <b id="status-text">...</b></span>
+                <span class="team-badge">Equipe alpha</span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- CONTEÚDO PRINCIPAL -->
+    <main class="main-content">
+        <header>
+            <h1>Visão geral - Dashboard</h1>
+        </header>
+
+        <section class="content-body">
+            <!-- Espaço reservado para o conteúdo dinâmico das telas -->
+            <p style="color: var(--text-secondary); opacity: 0.7;">
+                (Espaço reservado para o conteúdo das telas de Dashboard, Projetos, Kanban ou Calendário)
+            </p>
+        </section>
+    </main>
+
+    <!-- LOGICA DE INTERAÇÃO -->
+    <script>
+        // Seleção de elementos do DOM
+        const sidebar = document.getElementById('sidebar');
+        const toggleBtn = document.getElementById('toggle-btn');
+        const toggleIcon = toggleBtn.querySelector('i');
+
+        // Alternar estado da Sidebar (Recolher/Expandir)
+        toggleBtn.addEventListener('click', () => {
+            sidebar.classList.toggle('collapsed');
+        });
+
+        // Verificação de integridade da API (Health Check)
+        async function checkApiHealth() {
+            const statusDot = document.getElementById('api-status');
+            const statusText = document.getElementById('status-text');
+
+            try {
+                const response = await fetch('https://trainee-projetos-api.vercel.app/health');
+
+                if (response.ok) {
+                    statusDot.className = 'status-dot online';
+                    statusText.innerText = 'Online';
+                } else {
+                    throw new Error();
+                }
+            } catch (err) {
+                statusDot.className = 'status-dot offline';
+                statusText.innerText = 'Offline';
+            }
+        }
+
+        // Inicialização e atualização periódica do status (30s)
+        checkApiHealth();
+        setInterval(checkApiHealth, 30000);
+
+        // Lógica para marcar link ativo baseado na URL atual
+        document.querySelectorAll('.nav-link').forEach(link => {
+            if (link.href === window.location.href) {
+                document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+                link.closest('.nav-item').classList.add('active');
+            }
+        });
+    </script>
+</body>
+
+</html>
