@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Substitua a tag antiga por esta no <head> -->
     <title>Dashboard Quantitativo</title>
     <!-- Link para o CSS (Garanta que o arquivo esteja na mesma pasta) -->
     <link rel="stylesheet" href="../style/dashboardQuantitativo.css">
@@ -10,18 +11,12 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Lucide para ícones -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="../style/navibar.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
+    <main class="main-content">
     <div class="dashboard-wrapper">
-        <aside class="sidebar">
-            <div class="logo"><img src="../assets/logo-ij.svg" alt="Logo ij "></div>
-            <nav>
-                <a href="#"><i data-lucide="layout"></i> Projetos</a>
-                <a href="#"><i data-lucide="calendar"></i> Calendário</a>
-                <a href="#" class="active"><i data-lucide="bar-chart-2"></i> Dashboard</a>
-            </nav>
-        </aside>
-
         <main class="content">
             <header>
                 <div>
@@ -67,7 +62,7 @@
             <div class="charts-grid">
                 <div class="chart-container">
                     <h3>Projetos por Status</h3>
-                    <div id="projects-canvas-container"></div> 
+                    <div id="projects-canvas-container"><img src="../../" alt=""></div> 
                 </div>
                 <div class="chart-container">
                     <h3>Distribuição de Tarefas</h3>
@@ -85,7 +80,9 @@
             </section>
         </main>
     </div>
+    </main>
 
+    <script type="module" src="./js/navibar.js"></script>
     <script src="./js/dashboardQuantitativo.js"></script>
 </body>
 </html>
