@@ -9,12 +9,13 @@ function initSidebar() {
     // Se estiver na raiz, o link para src está em ./frontend/src/
     const toRoot = isInSrcFolder ? "../../" : "./";
     const toSrc = isInSrcFolder ? "./" : "./frontend/src/";
+    const toAssets = isInSrcFolder ? "../" : "./frontend/";
 
     const sidebarHTML = `
     <nav class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <div class="logo-container">
-                <img src="${toRoot}assets/logo-ij.svg" alt="Logo">
+                <img src="${toAssets}assets/logo-ij.svg" alt="Logo">
             </div>
             <button class="toggle-btn" id="toggle-btn">
                 <i class="fa-solid fa-columns"></i>
