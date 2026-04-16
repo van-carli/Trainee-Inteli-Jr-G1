@@ -33,24 +33,6 @@ body {
   line-height: 1.5;
 }
 
-/* Background Effect */
-.dots-bg {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-image: radial-gradient(rgba(255, 43, 32, 0.482) 1.5px, transparent 1px);
-  background-size: 30px 30px;
-  z-index: 0;
-  pointer-events: none;
-}
-
-.main-content > *:not(.dots-bg) {
-    position: relative;
-    z-index: 1;
-}
-
 /* Layout */
 .app-container {
   width: 100%;

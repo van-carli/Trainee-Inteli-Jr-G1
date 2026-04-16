@@ -2,7 +2,7 @@
  * Kanban Alpha - Versão Integrada e Funcional com Gemini
  */
 
-const API_BASE_URL = 'https://api-ij-treinee.onrender.com';
+const API_BASE_URL = 'https://trainee-projetos-api.vercel.app';
 
 // PEGA DADOS DO PROJETO SELECIONADO NA TELA INDEX
 const TEAM_TOKEN = localStorage.getItem('selectedTeamToken') || 'equipe-alpha-2026';
@@ -220,7 +220,7 @@ function createTaskCard(task) {
     card.innerHTML = `
         <div class="card-header">
             <span class="priority-badge ${priorityClass}">${p}</span>
-            <button class="delete-btn" onclick="deleteTask(${task.id})">
+            <button class="delete-btn">
                 <i data-lucide="trash-2"></i>
             </button>
         </div>
@@ -236,6 +236,37 @@ function createTaskCard(task) {
 
     card.addEventListener('dragstart', () => { card.classList.add('dragging'); draggedTaskId = task.id; });
     card.addEventListener('dragend', () => { card.classList.remove('dragging'); draggedTaskId = null; });
+
+    // ===== DELETE COM CONFIRMAÇÃO =====
+    card.querySelector('.delete-btn').addEventListener('click', (e) => {
+        e.stopPropagation();
+
+        // Evita duplicar caixa de confirmação
+        if (card.querySelector('.delete-confirm')) return;
+
+        card.innerHTML += `
+            <div class="delete-confirm">
+                Excluir tarefa?
+                <div class="delete-actions">
+                    <button class="cancel">Cancelar</button>
+                    <button class="confirm">Excluir</button>
+                </div>
+            </div>
+        `;
+
+        // Cancela exclusão (re-renderiza)
+        card.querySelector('.cancel').addEventListener('click', (e) => {
+            e.stopPropagation();
+            renderTasks(searchInput.value);
+        });
+
+        // Confirma exclusão
+        card.querySelector('.confirm').addEventListener('click', (e) => {
+            e.stopPropagation();
+            deleteTask(task.id);
+        });
+    });
+
     return card;
 }
 
@@ -337,11 +368,23 @@ async function createTask(taskData) {
     }
 }
 
+// Deleta tarefa
 async function deleteTask(taskId) {
-    if(!confirm("Excluir?")) return;
-    await fetch(`${API_BASE_URL}/tasks/${taskId}`, { method: 'DELETE', headers });
-    tasks = tasks.filter(t => t.id != taskId);
-    renderTasks();
+    try {
+        const response = await fetch(`${API_BASE_URL}/tasks/${taskId}`, {
+            method: 'DELETE',
+            headers
+        });
+
+        if (!response.ok) throw new Error();
+
+        // Remove do estado local
+        tasks = tasks.filter(t => t.id != taskId);
+
+        renderTasks(searchInput.value);
+    } catch {
+        alert('Erro ao excluir tarefa');
+    }
 }
 
 function closeModal() { taskModal.classList.add('hidden'); taskForm.reset(); }

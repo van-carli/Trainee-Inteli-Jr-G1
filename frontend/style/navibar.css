@@ -35,6 +35,20 @@ body {
     min-height: 100vh;
 }
 
+/* Bolinhas de fundo padronizadas para todas as telas */
+body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: radial-gradient(rgba(255, 45, 32, 0.18) 1.5px, transparent 1.5px);
+    background-size: 30px 30px;
+    z-index: -1;
+    pointer-events: none;
+}
+
 /* ESTILIZAÇÃO DA SIDEBAR */
 
 .sidebar {
@@ -203,10 +217,12 @@ body {
         transform: scale(0.95);
         box-shadow: 0 0 0 0 rgba(80, 250, 123, 0.7);
     }
+
     70% {
         transform: scale(1);
         box-shadow: 0 0 0 10px rgba(80, 250, 123, 0);
     }
+
     100% {
         transform: scale(0.95);
         box-shadow: 0 0 0 0 rgba(80, 250, 123, 0);
@@ -246,14 +262,15 @@ body {
     margin-left: var(--sidebar-width);
     flex-grow: 1;
     padding: 3rem;
-    background-image: radial-gradient(rgba(255, 45, 32, 0.05) 1px, transparent 1px);
-    background-size: 30px 30px;
+    min-height: 100vh;
     transition: margin-left var(--transition-speed) cubic-bezier(0.4, 0, 0.2, 1);
+    width: calc(100% - var(--sidebar-width));
     min-width: 0;
 }
 
 .sidebar.collapsed+.main-content {
     margin-left: var(--sidebar-collapsed-width);
+    width: calc(100% - var(--sidebar-collapsed-width));
 }
 
 h1 {
@@ -262,23 +279,9 @@ h1 {
     letter-spacing: -1px;
 }
 
-/* Todas as suas telas (main) devem ter essa classe */
-.main-content {
-    margin-left: 280px; /* Largura da sidebar aberta */
-    flex-grow: 1;
-    min-height: 100vh;
-    transition: margin-left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    padding: 2rem;
-    width: calc(100% - 280px);
-}
-
-.sidebar.collapsed + .main-content {
-    margin-left: 80px;
-    width: calc(100% - 80px);
-}
-
 /* Responsividade básica */
 @media (max-width: 768px) {
+
     .sidebar,
     .sidebar.collapsed {
         width: var(--sidebar-collapsed-width);
@@ -302,7 +305,7 @@ h1 {
     }
 
     .main-content,
-    .sidebar.collapsed + .main-content {
+    .sidebar.collapsed+.main-content {
         margin-left: var(--sidebar-collapsed-width);
         width: calc(100% - var(--sidebar-collapsed-width));
         padding: 1.25rem;

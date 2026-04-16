@@ -6,7 +6,7 @@
     como uma senha obrigatória para a API aceitar a requisição.
 */
 
-const API_BASE_URL = 'https://api-ij-treinee.onrender.com';
+const API_BASE_URL = 'https://trainee-projetos-api.vercel.app';
 const TEAM_TOKEN = 'equipe-alpha-2026';
 let currentCalendarDate = new Date();
 let allTasks = [];
