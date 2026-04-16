@@ -16,7 +16,8 @@ const headers = {
 
 // CONFIGURAÇÃO GEMINI (Copiada da versão funcional)
 const GEMINI_API_KEY = 'AIzaSyD3u2RFRgeTAN1fIK16GA2H9WxQBrdq7uU'; 
-const GEMINI_MODEL = 'gemini-1.5-flash'; // Corrigido de 2.5 para 1.5 que é a estável
+const GEMINI_MODELS = ['gemini-2.0-flash'];
+const GEMINI_API_VERSIONS = ['v1beta', 'v1'];
 
 let tasks = [];
 let draggedTaskId = null;
@@ -49,31 +50,71 @@ document.addEventListener('DOMContentLoaded', () => {
 async function generateDescriptionWithGemini(taskTitle) {
     const prompt = `Você é um assistente de gestão de projetos. Escreva uma descrição para um card de Kanban com base no título informado. Responda somente em português, em 2 frases completas, sem listas e sem quebrar linha. Título: ${taskTitle}`.trim();
 
-    const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`,
-        {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                contents: [{ parts: [{ text: prompt }] }],
-                generationConfig: { temperature: 0.2, maxOutputTokens: 180 }
-            })
+    const requestBody = {
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { temperature: 0.2, maxOutputTokens: 180 }
+    };
+
+    let lastErrorMessage = '';
+    const fallbackDescription = generateLocalDescription(taskTitle);
+
+    for (const apiVersion of GEMINI_API_VERSIONS) {
+        for (const model of GEMINI_MODELS) {
+            const endpoint = `https://generativelanguage.googleapis.com/${apiVersion}/models/${model}:generateContent?key=${GEMINI_API_KEY}`;
+
+            try {
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(requestBody)
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    lastErrorMessage = `Gemini (${model}, ${apiVersion}) retornou ${response.status}.`;
+
+                    // 404 geralmente indica modelo/versão inválidos; tenta o próximo fallback
+                    if (response.status === 404) {
+                        continue;
+                    }
+
+                    // 429 = quota estourada. Retorna fallback local para não travar o fluxo.
+                    if (response.status === 429) {
+                        console.warn('Gemini sem cota no momento. Usando descrição local.', errorText);
+                        return fallbackDescription;
+                    }
+
+                    // 401/403 = chave inválida ou sem permissão. Retorna fallback local.
+                    if (response.status === 401 || response.status === 403) {
+                        console.warn('Gemini sem autorização/permissão. Usando descrição local.', errorText);
+                        return fallbackDescription;
+                    }
+
+                    // Para outros status, continua tentando fallback também
+                    continue;
+                }
+
+                const data = await response.json();
+                const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+
+                let text = rawText.replace(/\s+/g, ' ').trim();
+                if (text.length < 10) {
+                    text = fallbackDescription;
+                }
+                return text;
+            } catch (error) {
+                lastErrorMessage = error?.message || 'Erro de rede ao chamar o Gemini.';
+            }
         }
-    );
-
-    if (!response.ok) {
-        throw new Error('Falha ao conectar com o Gemini. Verifique a cota ou a chave.');
     }
-
-    const data = await response.json();
-    const rawText = data?.candidates?.[0]?.content?.parts[0]?.text || '';
     
-    // Limpeza de texto (Lógica da versão funcional)
-    let text = rawText.replace(/\s+/g, ' ').trim();
-    if (text.length < 10) {
-        text = `Esta tarefa tem como objetivo realizar o desenvolvimento de ${taskTitle.toLowerCase()}. Ao final, os resultados devem ser validados conforme o escopo do projeto.`;
-    }
-    return text;
+    console.warn(`Gemini indisponível. Usando descrição local. ${lastErrorMessage}`.trim());
+    return fallbackDescription;
+}
+
+function generateLocalDescription(taskTitle) {
+    const cleanTitle = taskTitle.trim().toLowerCase();
+    return `Esta tarefa tem como objetivo realizar ${cleanTitle} de forma organizada e alinhada aos critérios do projeto. Ao final, o resultado deve ser validado com o time para garantir qualidade e aderência ao prazo.`;
 }
 
 // --- LÓGICA DO KANBAN ---
@@ -153,8 +194,6 @@ function setupEventListeners() {
             aiDescriptionBtn.innerText = "Gerando...";
             const desc = await generateDescriptionWithGemini(title);
             descriptionInput.value = desc;
-        } catch (error) {
-            alert(error.message);
         } finally {
             aiDescriptionBtn.disabled = false;
             aiDescriptionBtn.innerText = "✨ Gerar descrição com Gemini";
