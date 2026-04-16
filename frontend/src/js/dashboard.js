@@ -6,7 +6,7 @@ const TEAM_TOKEN = localStorage.getItem('selectedTeamToken') || 'equipe-alpha-20
 let allProjects = [];
 let filteredProjects = [];
 
-// Função que BUSCA os projetos na API (GET)
+// Função que busca os projetos na API (GET)
 async function fetchProjects() {
     try {
         const response = await fetch(`${API_URL}/projects`, {
@@ -24,7 +24,7 @@ async function fetchProjects() {
     }
 }
 
-// Função que CRIA um projeto na API (POST)
+// Função que cria um projeto na API (POST)
 async function createProject(projectData) {
     try {
         const response = await fetch(`${API_URL}/projects`, {
