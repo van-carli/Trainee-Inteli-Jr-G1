@@ -29,7 +29,7 @@ function initSidebar() {
                 </a>
             </li>
             <li class="nav-item">
-                <a href="${toRoot}index.html" class="nav-link">
+                <a href="${toRoot}index.html" class="nav-link" id="link-projetos">
                     <i class="fa-solid fa-briefcase"></i>
                     <span>Projetos IJ</span>
                 </a>
@@ -76,6 +76,15 @@ function initSidebar() {
             link.closest('.nav-item').classList.add('active');
         }
     });
+
+    // SE estiver no kanban, ativa "Projetos IJ"
+    if (window.location.pathname.includes("khanban")) {
+        const linkProjetos = document.getElementById("link-projetos");
+        
+        if (linkProjetos) {
+            linkProjetos.closest('.nav-item').classList.add('active');
+        }
+    }
 
     checkApiHealth();
 }
