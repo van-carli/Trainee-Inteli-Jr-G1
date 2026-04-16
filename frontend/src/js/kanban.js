@@ -1,11 +1,11 @@
 /**
- * Kanban Alpha - Project Specific Logic
+ * Kanban Alpha - Versão Integrada e Funcional com Gemini
  */
 
 const API_BASE_URL = 'https://api-ij-treinee.onrender.com';
 
 // PEGA DADOS DO PROJETO SELECIONADO NA TELA INDEX
-const TEAM_TOKEN = localStorage.getItem('selectedTeamToken');
+const TEAM_TOKEN = localStorage.getItem('selectedTeamToken') || 'equipe-alpha-2026';
 const CURRENT_PROJECT_ID = localStorage.getItem('currentProjectId');
 const CURRENT_PROJECT_NAME = localStorage.getItem('currentProjectName') || 'Projeto';
 
@@ -14,9 +14,9 @@ const headers = {
     'x-team-token': TEAM_TOKEN
 };
 
-// IA Gemini
+// CONFIGURAÇÃO GEMINI (Copiada da versão funcional)
 const GEMINI_API_KEY = 'AIzaSyD3u2RFRgeTAN1fIK16GA2H9WxQBrdq7uU'; 
-const GEMINI_MODEL = 'gemini-1.5-flash'; 
+const GEMINI_MODEL = 'gemini-1.5-flash'; // Corrigido de 2.5 para 1.5 que é a estável
 
 let tasks = [];
 let draggedTaskId = null;
@@ -31,9 +31,10 @@ const taskForm = document.getElementById('task-form');
 const searchInput = document.getElementById('search-input');
 const titleInput = document.getElementById('title');
 const descriptionInput = document.getElementById('description');
+const aiDescriptionBtn = document.getElementById('btn-ai-description');
 
 document.addEventListener('DOMContentLoaded', () => {
-    if (!CURRENT_PROJECT_ID || !TEAM_TOKEN) {
+    if (!CURRENT_PROJECT_ID) {
         alert("Nenhum projeto selecionado! Voltando para a galeria.");
         window.location.href = '../../index.html';
         return;
@@ -44,9 +45,40 @@ document.addEventListener('DOMContentLoaded', () => {
     setupEventListeners();
 });
 
+// --- LÓGICA DO GEMINI (IGUAL À VERSÃO FUNCIONAL) ---
+async function generateDescriptionWithGemini(taskTitle) {
+    const prompt = `Você é um assistente de gestão de projetos. Escreva uma descrição para um card de Kanban com base no título informado. Responda somente em português, em 2 frases completas, sem listas e sem quebrar linha. Título: ${taskTitle}`.trim();
+
+    const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`,
+        {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ parts: [{ text: prompt }] }],
+                generationConfig: { temperature: 0.2, maxOutputTokens: 180 }
+            })
+        }
+    );
+
+    if (!response.ok) {
+        throw new Error('Falha ao conectar com o Gemini. Verifique a cota ou a chave.');
+    }
+
+    const data = await response.json();
+    const rawText = data?.candidates?.[0]?.content?.parts[0]?.text || '';
+    
+    // Limpeza de texto (Lógica da versão funcional)
+    let text = rawText.replace(/\s+/g, ' ').trim();
+    if (text.length < 10) {
+        text = `Esta tarefa tem como objetivo realizar o desenvolvimento de ${taskTitle.toLowerCase()}. Ao final, os resultados devem ser validados conforme o escopo do projeto.`;
+    }
+    return text;
+}
+
+// --- LÓGICA DO KANBAN ---
 async function fetchTasks() {
     try {
-        // FILTRADO PELO PROJETO VINDO DA INDEX
         const response = await fetch(`${API_BASE_URL}/tasks?projectId=${CURRENT_PROJECT_ID}`, { headers });
         if (!response.ok) throw new Error('Falha ao buscar tarefas');
         tasks = await response.json();
@@ -82,11 +114,12 @@ function createTaskCard(task) {
     card.draggable = true;
     card.dataset.id = task.id;
 
-    const priorityClass = `priority-${task.priority.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")}`;
+    const p = task.priority || 'Média';
+    const priorityClass = `priority-${p.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")}`;
 
     card.innerHTML = `
         <div class="card-header">
-            <span class="priority-badge ${priorityClass}">${task.priority}</span>
+            <span class="priority-badge ${priorityClass}">${p}</span>
             <button class="delete-btn" onclick="deleteTask(${task.id})">
                 <i data-lucide="trash-2"></i>
             </button>
@@ -106,72 +139,29 @@ function createTaskCard(task) {
     return card;
 }
 
-async function updateTaskStatus(taskId, newStatus) {
-    try {
-        const response = await fetch(`${API_BASE_URL}/tasks/${taskId}/status`, {
-            method: 'PATCH',
-            headers,
-            body: JSON.stringify({ status: newStatus })
-        });
-        if (response.ok) {
-            const task = tasks.find(t => t.id == taskId);
-            if (task) task.status = newStatus;
-            renderTasks(searchInput.value);
-        }
-    } catch (error) { console.error(error); }
-}
-
-async function createTask(taskData) {
-    try {
-        const response = await fetch(`${API_BASE_URL}/tasks`, {
-            method: 'POST',
-            headers,
-            body: JSON.stringify({
-                projectId: Number(CURRENT_PROJECT_ID),
-                title: taskData.title,
-                description: taskData.description,
-                status: 'A fazer',
-                priority: taskData.priority,
-                assignee: taskData.assignee,
-                dueDate: taskData.dueDate,
-                estimatedHours: Number(taskData.estimatedHours)
-            })
-        });
-        if (response.ok) {
-            const res = await response.json();
-            tasks.push(res.task);
-            renderTasks();
-            closeModal();
-        }
-    } catch (error) { alert('Erro ao criar tarefa.'); }
-}
-
-async function generateDescriptionWithGemini(taskTitle) {
-    const prompt = `Escreva uma descrição de 2 frases para a tarefa: ${taskTitle}. Foco em objetivo e resultado.`;
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-    });
-    const data = await response.json();
-    return data.candidates[0].content.parts[0].text;
-}
-
 function setupEventListeners() {
     document.getElementById('open-modal-btn').onclick = () => taskModal.classList.remove('hidden');
     document.getElementById('close-modal-btn').onclick = closeModal;
     
-    document.getElementById('btn-ai-description').onclick = async () => {
-        const title = titleInput.value;
-        if (!title) return alert("Insira um título.");
-        const btn = document.getElementById('btn-ai-description');
-        btn.innerText = "Gerando...";
-        const desc = await generateDescriptionWithGemini(title);
-        descriptionInput.value = desc;
-        btn.innerText = "✨ Gerar descrição com Gemini";
-    };
+    // Configuração do Botão de IA (Lógica corrigida)
+    aiDescriptionBtn.addEventListener('click', async () => {
+        const title = titleInput.value.trim();
+        if (!title) return alert("Digite o título primeiro.");
 
-    taskForm.onsubmit = (e) => {
+        try {
+            aiDescriptionBtn.disabled = true;
+            aiDescriptionBtn.innerText = "Gerando...";
+            const desc = await generateDescriptionWithGemini(title);
+            descriptionInput.value = desc;
+        } catch (error) {
+            alert(error.message);
+        } finally {
+            aiDescriptionBtn.disabled = false;
+            aiDescriptionBtn.innerText = "✨ Gerar descrição com Gemini";
+        }
+    });
+
+    taskForm.onsubmit = async (e) => {
         e.preventDefault();
         const data = {
             title: titleInput.value,
@@ -181,21 +171,54 @@ function setupEventListeners() {
             dueDate: document.getElementById('dueDate').value,
             estimatedHours: document.getElementById('estimatedHours').value
         };
-        createTask(data);
+        await createTask(data);
     };
 
     searchInput.oninput = (e) => renderTasks(e.target.value);
 
+    // Configuração do Drag and Drop
     document.querySelectorAll('.kanban-column').forEach(column => {
         const dropZone = column.querySelector('.column-cards');
-        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag-over'); });
-        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+        dropZone.addEventListener('dragover', (e) => e.preventDefault());
         dropZone.addEventListener('drop', (e) => {
             e.preventDefault();
-            dropZone.classList.remove('drag-over');
             if (draggedTaskId) updateTaskStatus(draggedTaskId, column.dataset.status);
         });
     });
+}
+
+async function updateTaskStatus(taskId, newStatus) {
+    await fetch(`${API_BASE_URL}/tasks/${taskId}/status`, {
+        method: 'PATCH',
+        headers,
+        body: JSON.stringify({ status: newStatus })
+    });
+    const task = tasks.find(t => t.id == taskId);
+    if (task) task.status = newStatus;
+    renderTasks(searchInput.value);
+}
+
+async function createTask(taskData) {
+    const response = await fetch(`${API_BASE_URL}/tasks`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+            projectId: Number(CURRENT_PROJECT_ID),
+            title: taskData.title,
+            description: taskData.description,
+            status: 'A fazer',
+            priority: taskData.priority,
+            assignee: taskData.assignee,
+            dueDate: taskData.dueDate,
+            estimatedHours: Number(taskData.estimatedHours)
+        })
+    });
+    if (response.ok) {
+        const res = await response.json();
+        tasks.push(res.task);
+        renderTasks();
+        closeModal();
+    }
 }
 
 async function deleteTask(taskId) {
