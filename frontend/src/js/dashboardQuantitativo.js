@@ -8,23 +8,17 @@ let refreshInterval;
 // 1. INICIALIZAÇÃO
 document.addEventListener('DOMContentLoaded', async () => {
     if (typeof lucide !== 'undefined') lucide.createIcons();
-    
-    // Carrega a lista de projetos APENAS UMA VEZ
     await loadDashboardProjects();
-    
-    // Inicia a atualização automática (5 segundos) apenas dos dados
     startAutoRefresh();
 });
 
-// 2. CARREGA LISTA GLOBAL DE PROJETOS (SEM REPETIÇÃO)
+// 2. CARREGA LISTA DE PROJETOS (SEM DUPLICATAS)
 async function loadDashboardProjects() {
     const select = document.getElementById('teamSelect');
     if (!select) return;
 
     select.innerHTML = '<option value="TODOS">Visão Geral (Todos os Projetos)</option>';
     masterProjects = [];
-
-    // Conjunto para rastrear nomes de projetos já adicionados e evitar duplicatas
     const projetosAdicionados = new Set();
 
     for (const token of ALL_TOKENS) {
@@ -33,13 +27,9 @@ async function loadDashboardProjects() {
             if (res.ok) {
                 const projs = await res.json();
                 projs.forEach(p => {
-                    // CHAVE ÚNICA: Nome do Projeto + Nome do Cliente
                     const chaveUnica = `${p.name}-${p.client}`;
-
                     if (!projetosAdicionados.has(chaveUnica)) {
                         projetosAdicionados.add(chaveUnica);
-                        
-                        // Guardamos o token junto com o projeto
                         masterProjects.push({ ...p, token });
                         
                         const opt = document.createElement('option');
@@ -49,16 +39,11 @@ async function loadDashboardProjects() {
                     }
                 });
             }
-        } catch (e) {
-            console.error(`Erro ao carregar projetos do token ${token}:`, e);
-        }
+        } catch (e) { console.error(e); }
     }
     
     const saved = localStorage.getItem('currentProjectId');
-    if (saved) {
-        select.value = saved;
-    }
-    
+    if (saved) select.value = saved;
     changeTeam();
 }
 
@@ -73,23 +58,18 @@ async function changeTeam() {
     if (val === "TODOS") {
         titleDisp.innerText = "VISÃO GERAL DA EMPRESA";
         localStorage.removeItem('currentProjectId');
-        await fetchAllData();
+        await fetchAllData(); // <--- Lógica corrigida abaixo
     } else {
         const proj = masterProjects.find(p => p.id == val);
         if (!proj) return;
-
         titleDisp.innerText = proj.name.toUpperCase();
-        
         localStorage.setItem('currentProjectId', proj.id);
-        localStorage.setItem('currentProjectName', proj.name);
         localStorage.setItem('selectedTeamToken', proj.token);
-        
         await fetchSingleProjectData(proj);
     }
 }
 
-// ... (As funções fetchSingleProjectData, fetchAllData e updateUI permanecem iguais)
-
+// 4. BUSCA DADOS DE UM PROJETO ESPECÍFICO
 async function fetchSingleProjectData(project) {
     try {
         const resTasks = await fetch(`${BASE_URL}/tasks?projectId=${project.id}`, {
@@ -98,57 +78,101 @@ async function fetchSingleProjectData(project) {
 
         if (resTasks.ok) {
             const tasks = await resTasks.json();
-            const metrics = {
-                totalProjects: 1,
-                totalTasks: tasks.length,
-                overdueTasks: tasks.filter(t => t.status !== "Concluída" && new Date(t.dueDate) < new Date()).length,
-                highPriorityTasks: tasks.filter(t => t.priority === "Alta").length,
-                tasksByStatus: tasks.reduce((acc, t) => {
-                    acc[t.status] = (acc[t.status] || 0) + 1;
-                    return acc;
-                }, {})
-            };
+            const metrics = calculateMetricsFromTasks(tasks, 1);
             updateUI(metrics, [project], false);
             processAndRenderActivity(tasks);
         }
     } catch (e) { console.error(e); }
 }
 
+// 5. VISÃO GERAL CORRIGIDA: Consolidando por Projetos e não por Equipes
 async function fetchAllData() {
-    let globalDash = { totalProjects: 0, totalTasks: 0, overdueTasks: 0, highPriorityTasks: 0, tasksByStatus: {} };
-    let allTasks = [];
+    let rawAllTasks = [];
 
-    for (const t of ALL_TOKENS) {
+    // Busca todas as tarefas de todas as equipes
+    for (const token of ALL_TOKENS) {
         try {
-            const [resD, resT] = await Promise.all([
-                fetch(`${BASE_URL}/dashboard`, { headers: { 'x-team-token': t } }),
-                fetch(`${BASE_URL}/tasks`, { headers: { 'x-team-token': t } })
-            ]);
-            if (resD.ok) {
-                const d = await resD.json();
-                globalDash.totalProjects += d.totalProjects;
-                globalDash.totalTasks += d.totalTasks;
-                globalDash.overdueTasks += d.overdueTasks;
-                globalDash.highPriorityTasks += d.highPriorityTasks;
-                for (let k in d.tasksByStatus) {
-                    globalDash.tasksByStatus[k] = (globalDash.tasksByStatus[k] || 0) + d.tasksByStatus[k];
-                }
-            }
-            if (resT.ok) {
-                const tasksList = await resT.json();
-                allTasks = allTasks.concat(tasksList);
+            const res = await fetch(`${BASE_URL}/tasks`, { headers: { 'x-team-token': token } });
+            if (res.ok) {
+                const tasks = await res.json();
+                rawAllTasks = rawAllTasks.concat(tasks);
             }
         } catch (e) { console.warn(e); }
     }
-    updateUI(globalDash, masterProjects, true);
-    processAndRenderActivity(allTasks);
+
+    // REMOVER DUPLICATAS DE TAREFAS (Pois a API repete as mesmas tasks em cada token)
+    // Usamos o título + ID do projeto como chave única
+    const tasksUnicasMap = new Map();
+    rawAllTasks.forEach(task => {
+        const chaveTask = `${task.title}-${task.projectId}`;
+        if (!tasksUnicasMap.has(chaveTask)) {
+            tasksUnicasMap.set(chaveTask, task);
+        }
+    });
+
+    const tasksConsolidadas = Array.from(tasksUnicasMap.values());
+    
+    // Calcula métricas baseadas na lista única de tarefas
+    const metrics = calculateMetricsFromTasks(tasksConsolidadas, masterProjects.length);
+    
+    updateUI(metrics, masterProjects, true);
+    processAndRenderActivity(tasksConsolidadas);
 }
 
-function updateUI(dash, projetos, isGeral) {
-    document.getElementById('totalProjects').innerText = dash.totalProjects;
-    document.getElementById('totalTasks').innerText = dash.totalTasks;
-    document.getElementById('overdueTasks').innerText = dash.overdueTasks;
-    document.getElementById('highPriorityTasks').innerText = dash.highPriorityTasks;
+// FUNÇÃO AUXILIAR PARA CALCULAR MÉTRICAS
+function calculateMetricsFromTasks(tasks, totalProjs) {
+    const hoje = new Date();
+    const tasksByStatus = {};
+    let overdue = 0;
+    let highPriority = 0;
+
+    tasks.forEach(t => {
+        tasksByStatus[t.status] = (tasksByStatus[t.status] || 0) + 1;
+        if (t.dueDate && t.status !== "Concluída" && new Date(t.dueDate) < hoje) {
+            overdue++;
+        }
+        if (t.priority === "Alta") highPriority++;
+    });
+
+    // --- LÓGICA DE SAÚDE (HEALTH SCORE) ---
+    let healthText = "No Prazo";
+    let healthClass = "health-prazo";
+
+    const taxaAtraso = overdue / (tasks.length || 1);
+
+    if (overdue > 0 && taxaAtraso > 0.2) { 
+        // Se houver mais de 20% de tarefas atrasadas
+        healthText = "Crítico";
+        healthClass = "health-critico";
+    } else if (overdue > 0 || highPriority > (tasks.length * 0.4)) {
+        // Se houver qualquer atraso OU muitas tarefas de alta prioridade acumuladas
+        healthText = "Em Risco";
+        healthClass = "health-risco";
+    }
+
+    return {
+        totalProjects: totalProjs,
+        totalTasks: tasks.length,
+        overdueTasks: overdue,
+        highPriorityTasks: highPriority,
+        tasksByStatus: tasksByStatus,
+        health: { text: healthText, class: healthClass } // Retorna a saúde
+    };
+}
+
+// 6. ATUALIZA INTERFACE
+function updateUI(metrics, projetos, isGeral) {
+    // Atualiza os cards (Note que totalProjects foi removido em favor do Health)
+    const healthElem = document.getElementById('projectHealth');
+    healthElem.innerText = metrics.health.text;
+    healthElem.className = metrics.health.class; // Aplica a cor (Vermelho, Laranja ou Verde)
+
+    const ordemFixa = ['A fazer', 'Em andamento', 'Em revisão', 'Concluída'];
+    const dadosOrdenados = ordemFixa.map(status => metrics.tasksByStatus[status] || 0);
+
+    document.getElementById('totalTasks').innerText = metrics.totalTasks;
+    document.getElementById('overdueTasks').innerText = metrics.overdueTasks;
+    document.getElementById('highPriorityTasks').innerText = metrics.highPriorityTasks;
 
     const container = document.getElementById('projects-canvas-container');
     if (!container) return;
@@ -171,12 +195,18 @@ function updateUI(dash, projetos, isGeral) {
         });
     }
 
-    const labels = Object.keys(dash.tasksByStatus);
-    const cores = labels.map(l => l==='Concluída'?'#00ff7f':l==='Em revisão'?'#ff4d4d':l==='Em andamento'?'#ffa500':'#448aec');
-    renderChart('tasksChart', 'bar', labels, Object.values(dash.tasksByStatus), cores);
+    const labels = Object.keys(metrics.tasksByStatus);
+    const coresOrdenadas = ordemFixa.map(status => {
+    switch(status) {
+        case 'A fazer': return '#3179dd';      // Cinza
+        case 'Em andamento': return '#ffa500'; // Laranja
+        case 'Em revisão': return '#ff4d4d';   // Vermelho Alpha
+        case 'Concluída': return '#00ff7f';    // Verde Neon
+        default: return '#504a4a';
+    }
+    });
+    renderChart('tasksChart', 'bar', ordemFixa, dadosOrdenados, coresOrdenadas);
 }
-
-// ... (Manter as funções renderGauge, renderChart e processAndRenderActivity iguais ao seu código anterior)
 
 function renderGauge(id, percent, sub) {
     const ctx = document.getElementById(id).getContext('2d');

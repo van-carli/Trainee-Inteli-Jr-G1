@@ -213,3 +213,14 @@ header p { color: var(--accent); font-size: 0.9rem; font-weight: 500; }
     font-weight: bold;
     letter-spacing: 1px;
 }
+
+/* Cores qualitativas para o Health Score */
+.health-critico { color: #ff4d4d !important; text-shadow: 0 0 10px rgba(255, 77, 77, 0.3); }
+.health-risco { color: #ffa500 !important; text-shadow: 0 0 10px rgba(255, 165, 0, 0.3); }
+.health-prazo { color: #00ff7f !important; text-shadow: 0 0 10px rgba(0, 255, 127, 0.3); }
+
+/* Ajuste para o texto não quebrar se for longo */
+#projectHealth {
+    font-size: 1.8rem; /* Um pouco menor que os números para caber a palavra */
+    text-transform: uppercase;
+}
