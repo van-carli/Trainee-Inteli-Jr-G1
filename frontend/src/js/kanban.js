@@ -32,6 +32,14 @@ const searchInput = document.getElementById('search-input');
 const titleInput = document.getElementById('title');
 const descriptionInput = document.getElementById('description');
 const aiDescriptionBtn = document.getElementById('btn-ai-description');
+const apiKeyModal = document.getElementById('api-key-modal');
+const apiKeyForm = document.getElementById('api-key-form');
+const apiKeyInput = document.getElementById('api-key-input');
+const apiKeyError = document.getElementById('api-key-error');
+const apiKeyCancelBtn = document.getElementById('api-key-cancel');
+const apiKeyCancelButton = document.getElementById('api-key-cancel-btn');
+
+let apiKeyResolver = null;
 
 document.addEventListener('DOMContentLoaded', () => {
     if (!CURRENT_PROJECT_ID) {
@@ -47,7 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // --- LÓGICA DO GEMINI (IGUAL À VERSÃO FUNCIONAL) ---
 async function generateDescriptionWithGemini(taskTitle) {
-    const geminiApiKey = getGeminiApiKey();
+    const geminiApiKey = await getGeminiApiKey();
     if (!geminiApiKey) {
         return generateLocalDescription(taskTitle);
     }
@@ -125,17 +133,42 @@ function getGeminiApiKey() {
     const storedKey = localStorage.getItem('geminiApiKey');
 
     if (storedKey && storedKey.trim()) {
-        return storedKey.trim();
+        return Promise.resolve(storedKey.trim());
     }
 
-    const inputKey = prompt('Cole a chave da API do Gemini para gerar descrições:');
-    const normalizedKey = inputKey?.trim() || '';
+    return new Promise((resolve) => {
+        apiKeyResolver = resolve;
+        apiKeyError.classList.add('hidden');
+        apiKeyInput.value = '';
+        apiKeyModal.classList.remove('hidden');
 
-    if (normalizedKey) {
-        localStorage.setItem('geminiApiKey', normalizedKey);
+        setTimeout(() => {
+            apiKeyInput.focus();
+        }, 0);
+
+        apiKeyInput.onkeydown = (event) => {
+            if (event.key === 'Escape') {
+                closeApiKeyModal('');
+            }
+        };
+
+        apiKeyModal.onclick = (event) => {
+            if (event.target === apiKeyModal) {
+                closeApiKeyModal('');
+            }
+        };
+    });
+}
+
+function closeApiKeyModal(value = '') {
+    apiKeyModal.classList.add('hidden');
+    apiKeyForm.reset();
+    apiKeyError.classList.add('hidden');
+
+    if (apiKeyResolver) {
+        apiKeyResolver(value);
+        apiKeyResolver = null;
     }
-
-    return normalizedKey;
 }
 
 function isDescriptionComplete(text) {
@@ -209,6 +242,22 @@ function createTaskCard(task) {
 function setupEventListeners() {
     document.getElementById('open-modal-btn').onclick = () => taskModal.classList.remove('hidden');
     document.getElementById('close-modal-btn').onclick = closeModal;
+    apiKeyCancelBtn.onclick = () => closeApiKeyModal('');
+    apiKeyCancelButton.onclick = () => closeApiKeyModal('');
+
+    apiKeyForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        const normalizedKey = apiKeyInput.value.trim();
+
+        if (!normalizedKey) {
+            apiKeyError.classList.remove('hidden');
+            apiKeyInput.focus();
+            return;
+        }
+
+        localStorage.setItem('geminiApiKey', normalizedKey);
+        closeApiKeyModal(normalizedKey);
+    });
     
     // Configuração do Botão de IA (Lógica corrigida)
     aiDescriptionBtn.addEventListener('click', async () => {

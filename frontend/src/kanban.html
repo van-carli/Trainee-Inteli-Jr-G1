@@ -137,6 +137,44 @@
         </div>
     </div>
 
+    <div id="api-key-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="api-key-modal-title">
+        <div class="modal-content api-key-modal-content">
+            <div class="modal-header">
+                <h3 id="api-key-modal-title" class="modal-title">Chave do Gemini</h3>
+                <button type="button" id="api-key-cancel" class="btn-close" aria-label="Fechar modal">
+                    <i data-lucide="x" class="close-icon"></i>
+                </button>
+            </div>
+
+            <p class="api-key-help">
+                Cole sua API key do Gemini para gerar descrições automaticamente.
+            </p>
+
+            <form id="api-key-form" class="api-key-form">
+                <div class="form-group">
+                    <label for="api-key-input" class="form-label">API Key</label>
+                    <input
+                        type="password"
+                        id="api-key-input"
+                        class="form-input api-key-input"
+                        placeholder="Cole a chave aqui"
+                        autocomplete="off"
+                        spellcheck="false"
+                    />
+                </div>
+
+                <p id="api-key-error" class="api-key-error hidden" role="alert">
+                    Informe uma chave válida para continuar.
+                </p>
+
+                <div class="api-key-actions">
+                    <button type="button" id="api-key-cancel-btn" class="btn-secondary">Cancelar</button>
+                    <button type="submit" class="btn-submit api-key-save-btn">Salvar chave</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script type="module" src="./js/navibar.js"></script>
     <script src="./js/kanban.js"></script>
 </body>

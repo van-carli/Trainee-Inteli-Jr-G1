@@ -372,6 +372,82 @@ body {
   animation: slideUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
+.api-key-modal-content {
+  max-width: 34rem;
+  background:
+    radial-gradient(circle at top left, rgba(255, 77, 77, 0.16), transparent 34%),
+    linear-gradient(180deg, #101225 0%, #0b0d18 100%);
+  border-color: rgba(255, 77, 77, 0.2);
+}
+
+.api-key-help {
+  color: var(--text-gray);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin-bottom: 1rem;
+}
+
+.api-key-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.api-key-input {
+  font-family: var(--font-mono);
+  letter-spacing: 0.03em;
+  background-color: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: var(--text-white);
+}
+
+.api-key-input::placeholder {
+  color: rgba(156, 163, 175, 0.8);
+}
+
+.api-key-input:focus {
+  outline: none;
+  border-color: rgba(255, 77, 77, 0.7);
+  box-shadow: 0 0 0 3px rgba(255, 77, 77, 0.16);
+}
+
+.api-key-error {
+  color: #ffb3b3;
+  background: rgba(255, 77, 77, 0.08);
+  border: 1px solid rgba(255, 77, 77, 0.18);
+  border-radius: 0.75rem;
+  padding: 0.75rem 0.9rem;
+  font-size: 0.9rem;
+}
+
+.api-key-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-white);
+  padding: 0.75rem 1.25rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: var(--font-mono);
+  font-weight: 700;
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 77, 77, 0.28);
+}
+
+.api-key-save-btn {
+  min-width: 170px;
+}
+
 @keyframes slideUp {
   from { transform: translateY(20px) scale(0.95); opacity: 0; }
   to { transform: translateY(0) scale(1); opacity: 1; }
