@@ -23,10 +23,6 @@ body {
     height: 100vh;
     overflow: hidden;
     display: flex;
-
-    /* Bolinhas no fundo */
-    background-image: radial-gradient(circle, #680404 2px, transparent 2px);
-    background-size: 32px 32px; 
 }
 
 .main-content {

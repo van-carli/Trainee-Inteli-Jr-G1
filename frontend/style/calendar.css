@@ -35,15 +35,6 @@ body .main-content {
     align-items: stretch;
 }
 
-body::before {
-    content: "";
-    position: fixed;
-    inset: 0;
-    background-image: radial-gradient(rgba(255, 45, 32, 0.38) 1.2px, transparent 1.2px);
-    background-size: 28px 28px;
-    pointer-events: none;
-    z-index: 0;
-}
 
 .project-calendar {
     width: min(1280px, 100%);
