@@ -543,3 +543,31 @@ body {
   background: var(--accent);
 }
 
+/* ... ao final do seu style.css ... */
+
+/* Estilo visual do botão de IA no modal de tarefa */
+.btn-ai-description {
+  width: 100%;
+  background-color: transparent;
+  color: #ffd166; /* Cor amarela/dourada para destacar a funcionalidade de IA */
+  font-weight: 700;
+  padding: 0.65rem;
+  border-radius: 0.5rem;
+  border: 1px dashed #ffd166;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 8px;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+}
+
+.btn-ai-description:hover {
+  background-color: rgba(255, 209, 102, 0.12);
+  transform: translateY(-2px);
+}
+
+.btn-ai-description:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

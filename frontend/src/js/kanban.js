@@ -1,10 +1,10 @@
 /**
- * Kanban Alpha - Core Logic
+ * Kanban Alpha - Core Logic (Versão com Gemini AI)
  */
 
 const API_BASE_URL = 'https://api-ij-treinee.onrender.com';
 
-// Pegamos o token e os dados do projeto do localStorage
+// Integração com LocalStorage (Suas configurações atuais)
 const TEAM_TOKEN = localStorage.getItem('selectedTeamToken') || 'equipe-alpha-2026';
 const CURRENT_PROJECT_ID = localStorage.getItem('currentProjectId');
 const CURRENT_PROJECT_NAME = localStorage.getItem('currentProjectName') || 'Projeto Selecionado';
@@ -13,6 +13,11 @@ const headers = {
     'Content-Type': 'application/json',
     'x-team-token': TEAM_TOKEN
 };
+
+// Configuração Gemini (vinda dos arquivos de referência)
+// Dica: Altere para 'gemini-1.5-flash' se o modelo 2.5 não estiver disponível na sua região.
+const GEMINI_API_KEY = 'AIzaSyD3u2RFRgeTAN1fIK16GA2H9WxQBrdq7uU'; 
+const GEMINI_MODEL = 'gemini-1.5-flash'; 
 
 let tasks = [];
 let draggedTaskId = null;
@@ -28,8 +33,12 @@ const openModalBtn = document.getElementById('open-modal-btn');
 const closeModalBtn = document.getElementById('close-modal-btn');
 const searchInput = document.getElementById('search-input');
 
+// Elementos da IA
+const aiDescriptionBtn = document.getElementById('btn-ai-description');
+const titleInput = document.getElementById('title');
+const descriptionInput = document.getElementById('description');
+
 document.addEventListener('DOMContentLoaded', () => {
-    // Atualiza o título com o nome do projeto/equipe
     const titleElem = document.querySelector('.app-title');
     if (titleElem) titleElem.innerText = CURRENT_PROJECT_NAME;
 
@@ -37,31 +46,44 @@ document.addEventListener('DOMContentLoaded', () => {
     setupEventListeners();
 });
 
-/**
- * BUSCA DE TAREFAS
- * Alterado para remover o filtro de ID de projeto e trazer as 20 tasks da equipe
- */
+// --- LÓGICA DA IA GEMINI ---
+
+async function generateDescriptionWithGemini(taskTitle) {
+    if (!GEMINI_API_KEY) throw new Error('Chave API não configurada.');
+
+    const prompt = `Você é um assistente de gestão de projetos experiente. Escreva uma descrição curta para um card de Kanban baseada no título: "${taskTitle}". Responda em português, no máximo 2 frases, sem listas. Foco no objetivo da tarefa.`.trim();
+
+    const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`,
+        {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ parts: [{ text: prompt }] }],
+                generationConfig: { temperature: 0.7, maxOutputTokens: 150 }
+            })
+        }
+    );
+
+    if (!response.ok) throw new Error('Falha na comunicação com o Gemini');
+
+    const data = await response.json();
+    return data.candidates[0].content.parts[0].text.trim();
+}
+
+// --- RESTO DA LÓGICA DO KANBAN ---
+
 async function fetchTasks() {
     try {
-        console.log(`Buscando todas as tasks para: ${TEAM_TOKEN}`);
-        
-        // REMOVIDO o ?projectId=... para carregar as 20 tarefas da equipe inteira
         const response = await fetch(`${API_BASE_URL}/tasks`, { headers });
-        
         if (!response.ok) throw new Error('Falha ao buscar tarefas');
-        
         tasks = await response.json();
-        console.log("Tasks carregadas:", tasks.length);
-        
         renderTasks();
     } catch (error) {
         console.error('Erro:', error);
     }
 }
 
-/**
- * RENDERIZAÇÃO
- */
 function renderTasks(filter = '') {
     [colTodo, colDoing, colReview, colDone].forEach(col => col.innerHTML = '');
 
@@ -73,7 +95,6 @@ function renderTasks(filter = '') {
 
     filtered.forEach(task => {
         const card = createTaskCard(task);
-        // Distribui nas colunas baseada no status da API
         if (task.status === 'A fazer') colTodo.appendChild(card);
         else if (task.status === 'Em andamento') colDoing.appendChild(card);
         else if (task.status === 'Em revisão') colReview.appendChild(card);
@@ -114,9 +135,6 @@ function createTaskCard(task) {
     return card;
 }
 
-/**
- * ATUALIZAR STATUS (DRAG AND DROP)
- */
 async function updateTaskStatus(taskId, newStatus) {
     try {
         const response = await fetch(`${API_BASE_URL}/tasks/${taskId}/status`, {
@@ -124,21 +142,16 @@ async function updateTaskStatus(taskId, newStatus) {
             headers,
             body: JSON.stringify({ status: newStatus })
         });
-
         if (!response.ok) throw new Error('Falha ao atualizar status');
-
         const task = tasks.find(t => t.id == taskId);
         if (task) task.status = newStatus;
         renderTasks(searchInput.value);
     } catch (error) {
         console.error('Erro:', error);
-        fetchTasks(); // Recarrega em caso de erro para sincronizar
+        fetchTasks();
     }
 }
 
-/**
- * CRIAR TAREFA
- */
 async function createTask(taskData) {
     try {
         const response = await fetch(`${API_BASE_URL}/tasks`, {
@@ -162,7 +175,7 @@ async function createTask(taskData) {
         renderTasks();
         closeModal();
     } catch (error) {
-        alert('Erro ao criar tarefa. Verifique os campos.');
+        alert('Erro ao criar tarefa.');
     }
 }
 
@@ -181,11 +194,32 @@ function setupEventListeners() {
     openModalBtn.onclick = () => taskModal.classList.remove('hidden');
     closeModalBtn.onclick = () => taskModal.classList.add('hidden');
     
+    // NOVO: Evento do Botão de IA
+    aiDescriptionBtn.addEventListener('click', async () => {
+        const title = titleInput.value.trim();
+        if (!title) {
+            alert('Digite o título da tarefa primeiro.');
+            return;
+        }
+
+        try {
+            aiDescriptionBtn.disabled = true;
+            aiDescriptionBtn.innerText = '✨ Processando...';
+            const description = await generateDescriptionWithGemini(title);
+            descriptionInput.value = description;
+        } catch (error) {
+            alert('Erro ao gerar descrição: ' + error.message);
+        } finally {
+            aiDescriptionBtn.disabled = false;
+            aiDescriptionBtn.innerText = '✨ Gerar descrição com Gemini';
+        }
+    });
+
     taskForm.onsubmit = (e) => {
         e.preventDefault();
         const data = {
-            title: document.getElementById('title').value,
-            description: document.getElementById('description').value,
+            title: titleInput.value,
+            description: descriptionInput.value,
             priority: document.getElementById('priority').value,
             assignee: document.getElementById('assignee').value,
             dueDate: document.getElementById('dueDate').value,
