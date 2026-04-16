@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Substitua a tag antiga por esta no <head> -->
     <title>Dashboard Quantitativo</title>
     <!-- Link para o CSS (Garanta que o arquivo esteja na mesma pasta) -->
     <link rel="stylesheet" href="../style/dashboardQuantitativo.css">
@@ -10,29 +11,23 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Lucide para ícones -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="../style/navibar.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
+    <main class="main-content">
     <div class="dashboard-wrapper">
-        <aside class="sidebar">
-            <div class="logo"><img src="../assets/logo-ij.svg" alt="Logo ij "></div>
-            <nav>
-                <a href="#"><i data-lucide="layout"></i> Projetos</a>
-                <a href="#"><i data-lucide="calendar"></i> Calendário</a>
-                <a href="#" class="active"><i data-lucide="bar-chart-2"></i> Dashboard</a>
-            </nav>
-        </aside>
-
         <main class="content">
             <header>
                 <div>
-                    <h1>Métricas da Equipe</h1>
+                    <h1>Métricas do Projeto</h1>
                     <p id="team-name">Equipe Alpha 2026</p>
                 </div>
             </header>
 
             <!-- No seu dashboard.html, dentro do header ou acima dos cards -->
             <div class="filter-area">
-                <label for="teamSelect">Selecionar Equipe:</label>
+                <label for="teamSelect">Selecionar Projeto:</label>
                 <select id="teamSelect" onchange="changeTeam()">
                     <option value="equipe-alpha-2026">Equipe Alpha</option>
                     <option value="equipe-beta-2026">Equipe Beta</option>
@@ -45,9 +40,9 @@
 
             <!-- Cards com os dados diretos da API -->
             <div class="metrics-grid">
-                <div class="card">
-                    <span class="card-label">Total de Projetos</span>
-                    <h2 id="totalProjects">0</h2>
+                <div class="card" id="cardHealth">
+                    <span class="card-label">Saúde do Projeto</span>
+                    <h2 id="projectHealth">---</h2>
                 </div>
                 <div class="card">
                     <span class="card-label">Total de Tarefas</span>
@@ -67,7 +62,7 @@
             <div class="charts-grid">
                 <div class="chart-container">
                     <h3>Projetos por Status</h3>
-                    <div id="projects-canvas-container"></div> 
+                    <div id="projects-canvas-container"><img src="../../" alt=""></div> 
                 </div>
                 <div class="chart-container">
                     <h3>Distribuição de Tarefas</h3>
@@ -85,7 +80,9 @@
             </section>
         </main>
     </div>
+    </main>
 
+    <script type="module" src="./js/navibar.js"></script>
     <script src="./js/dashboardQuantitativo.js"></script>
 </body>
 </html>
