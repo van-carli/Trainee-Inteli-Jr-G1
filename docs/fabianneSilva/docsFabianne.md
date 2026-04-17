@@ -1,4 +1,4 @@
-# Documentação Individual: [Nome do seu Componente/Tela]
+# Documentação Individual: Tela do Kanban
 **Responsável:** Fabianne Jesus Silva Leite
 
 ---
