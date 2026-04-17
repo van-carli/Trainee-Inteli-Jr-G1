@@ -1,5 +1,5 @@
-# Documentação Individual: [Nome do seu Componente/Tela]
-**Responsável:** [Seu Nome Completo]
+# Documentação Individual: Tela Dashboard Quantitativo
+**Responsável:** Gabriel Silva Domingos
 
 ---
 

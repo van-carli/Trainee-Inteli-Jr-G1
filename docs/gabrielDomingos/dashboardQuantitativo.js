@@ -1,155 +1,236 @@
-// dashboardQuantitativo.js
-const BASE_URL = 'https://trainee-projetos-api.vercel.app';
+const BASE_URL = 'https://api-ij-treinee.onrender.com';
 const ALL_TOKENS = ['equipe-alpha-2026', 'equipe-beta-2026', 'equipe-gamma-2026', 'equipe-delta-2026', 'equipe-epsilon-2026'];
+
 let chartInstances = {};
+let masterProjects = [];
+let refreshInterval;
 
-async function changeTeam() {
-    const val = document.getElementById('teamSelect').value;
-    // SINCRONIZAÇÃO: Salva o token para as outras telas usarem
-    if (val !== "TODAS") localStorage.setItem('selectedTeamToken', val);
+// 1. INICIALIZAÇÃO
+document.addEventListener('DOMContentLoaded', async () => {
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+    await loadDashboardProjects();
+    startAutoRefresh();
+});
 
-    document.getElementById('team-name').innerText = val.replace(/-/g, ' ').toUpperCase();
-    val === "TODAS" ? await fetchAllTeams() : await fetchDashboard(val);
+// 2. CARREGA LISTA DE PROJETOS (SEM DUPLICATAS)
+async function loadDashboardProjects() {
+    const select = document.getElementById('teamSelect');
+    if (!select) return;
+
+    select.innerHTML = '<option value="TODOS">Visão Geral (Todos os Projetos)</option>';
+    masterProjects = [];
+    const projetosAdicionados = new Set();
+
+    for (const token of ALL_TOKENS) {
+        try {
+            const res = await fetch(`${BASE_URL}/projects`, { headers: { 'x-team-token': token } });
+            if (res.ok) {
+                const projs = await res.json();
+                projs.forEach(p => {
+                    const chaveUnica = `${p.name}-${p.client}`;
+                    if (!projetosAdicionados.has(chaveUnica)) {
+                        projetosAdicionados.add(chaveUnica);
+                        masterProjects.push({ ...p, token });
+                        
+                        const opt = document.createElement('option');
+                        opt.value = p.id;
+                        opt.textContent = `${p.name} (${p.client})`;
+                        select.appendChild(opt);
+                    }
+                });
+            }
+        } catch (e) { console.error(e); }
+    }
+    
+    const saved = localStorage.getItem('currentProjectId');
+    if (saved) select.value = saved;
+    changeTeam();
 }
 
-async function fetchDashboard(token) {
-    try {
-        const [resDash, resTasks] = await Promise.all([
-            fetch(`${BASE_URL}/dashboard`, { headers: { 'x-team-token': token } }),
-            fetch(`${BASE_URL}/tasks`, { headers: { 'x-team-token': token } })
-        ]);
+// 3. MUDANÇA DE FILTRO
+async function changeTeam() {
+    const select = document.getElementById('teamSelect');
+    if (!select) return;
+    
+    const val = select.value;
+    const titleDisp = document.getElementById('team-name');
 
-        if (resDash.ok && resTasks.ok) {
-            const dash = await resDash.json();
+    if (val === "TODOS") {
+        titleDisp.innerText = "VISÃO GERAL DA EMPRESA";
+        localStorage.removeItem('currentProjectId');
+        await fetchAllData(); // <--- Lógica corrigida abaixo
+    } else {
+        const proj = masterProjects.find(p => p.id == val);
+        if (!proj) return;
+        titleDisp.innerText = proj.name.toUpperCase();
+        localStorage.setItem('currentProjectId', proj.id);
+        localStorage.setItem('selectedTeamToken', proj.token);
+        await fetchSingleProjectData(proj);
+    }
+}
+
+// 4. BUSCA DADOS DE UM PROJETO ESPECÍFICO
+async function fetchSingleProjectData(project) {
+    try {
+        const resTasks = await fetch(`${BASE_URL}/tasks?projectId=${project.id}`, {
+            headers: { 'x-team-token': project.token }
+        });
+
+        if (resTasks.ok) {
             const tasks = await resTasks.json();
-            
-            // FILTRA POR EMPRESA CONFORME SUA SOLICITAÇÃO DE MAPEAMENTO
-            const mapeamento = {
-                'equipe-alpha-2026': 'Empresa Alpha',
-                'equipe-beta-2026': 'Empresa Beta',
-                'equipe-gamma-2026': 'Clinica Central',
-                'equipe-delta-2026': 'Grupo Horizonte',
-                'equipe-epsilon-2026': 'Tech Suporte Co.'
-            };
-            const empresaAlvo = mapeamento[token];
-            
-            // Aqui pegamos apenas as tarefas dos projetos daquela empresa específica
-            // (Assumindo que o nome da empresa está no projeto relacionado)
-            updateUI(dash, tasks, false);
+            const metrics = calculateMetricsFromTasks(tasks, 1);
+            updateUI(metrics, [project], false);
             processAndRenderActivity(tasks);
         }
     } catch (e) { console.error(e); }
 }
 
-async function fetchAllTeams() {
-    let globalDash = { totalProjects: 0, totalTasks: 0, overdueTasks: 0, highPriorityTasks: 0, tasksByStatus: {} };
-    let allTasks = [];
-    for (const t of ALL_TOKENS) {
-        const [rD, rT] = await Promise.all([
-            fetch(`${BASE_URL}/dashboard`, { headers: { 'x-team-token': t } }),
-            fetch(`${BASE_URL}/tasks`, { headers: { 'x-team-token': t } })
-        ]);
-        if (rD.ok) {
-            const d = await rD.json();
-            globalDash.totalProjects += d.totalProjects;
-            globalDash.totalTasks += d.totalTasks;
-            globalDash.overdueTasks += d.overdueTasks;
-            globalDash.highPriorityTasks += d.highPriorityTasks;
-            for (let k in d.tasksByStatus) globalDash.tasksByStatus[k] = (globalDash.tasksByStatus[k] || 0) + d.tasksByStatus[k];
-        }
-        if (rT.ok) allTasks = allTasks.concat(await rT.json());
+// 5. VISÃO GERAL CORRIGIDA: Consolidando por Projetos e não por Equipes
+async function fetchAllData() {
+    let rawAllTasks = [];
+
+    // Busca todas as tarefas de todas as equipes
+    for (const token of ALL_TOKENS) {
+        try {
+            const res = await fetch(`${BASE_URL}/tasks`, { headers: { 'x-team-token': token } });
+            if (res.ok) {
+                const tasks = await res.json();
+                rawAllTasks = rawAllTasks.concat(tasks);
+            }
+        } catch (e) { console.warn(e); }
     }
-    updateUI(globalDash, allTasks, true);
-    processAndRenderActivity(allTasks);
+
+    // REMOVER DUPLICATAS DE TAREFAS (Pois a API repete as mesmas tasks em cada token)
+    // Usamos o título + ID do projeto como chave única
+    const tasksUnicasMap = new Map();
+    rawAllTasks.forEach(task => {
+        const chaveTask = `${task.title}-${task.projectId}`;
+        if (!tasksUnicasMap.has(chaveTask)) {
+            tasksUnicasMap.set(chaveTask, task);
+        }
+    });
+
+    const tasksConsolidadas = Array.from(tasksUnicasMap.values());
+    
+    // Calcula métricas baseadas na lista única de tarefas
+    const metrics = calculateMetricsFromTasks(tasksConsolidadas, masterProjects.length);
+    
+    updateUI(metrics, masterProjects, true);
+    processAndRenderActivity(tasksConsolidadas);
 }
 
-function updateUI(dash, tasks, isGeral) {
-    document.getElementById('totalProjects').innerText = dash.totalProjects;
-    document.getElementById('totalTasks').innerText = dash.totalTasks;
-    document.getElementById('overdueTasks').innerText = dash.overdueTasks;
-    document.getElementById('highPriorityTasks').innerText = dash.highPriorityTasks;
+// FUNÇÃO AUXILIAR PARA CALCULAR MÉTRICAS
+function calculateMetricsFromTasks(tasks, totalProjs) {
+    const hoje = new Date();
+    const tasksByStatus = {};
+    let overdue = 0;
+    let highPriority = 0;
+
+    tasks.forEach(t => {
+        tasksByStatus[t.status] = (tasksByStatus[t.status] || 0) + 1;
+        if (t.dueDate && t.status !== "Concluída" && new Date(t.dueDate) < hoje) {
+            overdue++;
+        }
+        if (t.priority === "Alta") highPriority++;
+    });
+
+    // --- LÓGICA DE SAÚDE (HEALTH SCORE) ---
+    let healthText = "No Prazo";
+    let healthClass = "health-prazo";
+
+    const taxaAtraso = overdue / (tasks.length || 1);
+
+    if (overdue > 0 && taxaAtraso > 0.2) { 
+        // Se houver mais de 20% de tarefas atrasadas
+        healthText = "Crítico";
+        healthClass = "health-critico";
+    } else if (overdue > 0 || highPriority > (tasks.length * 0.4)) {
+        // Se houver qualquer atraso OU muitas tarefas de alta prioridade acumuladas
+        healthText = "Em Risco";
+        healthClass = "health-risco";
+    }
+
+    return {
+        totalProjects: totalProjs,
+        totalTasks: tasks.length,
+        overdueTasks: overdue,
+        highPriorityTasks: highPriority,
+        tasksByStatus: tasksByStatus,
+        health: { text: healthText, class: healthClass } // Retorna a saúde
+    };
+}
+
+// 6. ATUALIZA INTERFACE
+function updateUI(metrics, projetos, isGeral) {
+    // Atualiza os cards (Note que totalProjects foi removido em favor do Health)
+    const healthElem = document.getElementById('projectHealth');
+    healthElem.innerText = metrics.health.text;
+    healthElem.className = metrics.health.class; // Aplica a cor (Vermelho, Laranja ou Verde)
+
+    const ordemFixa = ['A fazer', 'Em andamento', 'Em revisão', 'Concluída'];
+    const dadosOrdenados = ordemFixa.map(status => metrics.tasksByStatus[status] || 0);
+
+    document.getElementById('totalTasks').innerText = metrics.totalTasks;
+    document.getElementById('overdueTasks').innerText = metrics.overdueTasks;
+    document.getElementById('highPriorityTasks').innerText = metrics.highPriorityTasks;
 
     const container = document.getElementById('projects-canvas-container');
+    if (!container) return;
     container.innerHTML = ''; 
 
     if (isGeral) {
-        // MÉDIA REAL BASEADA EM TAREFAS CONCLUÍDAS
-        const done = tasks.filter(t => t.status === "Concluída").length;
-        const media = Math.round((done / (tasks.length || 1)) * 100);
-        
+        const media = Math.round(projetos.reduce((acc, p) => acc + (p.progress || 0), 0) / (projetos.length || 1));
         const div = document.createElement('div');
         div.className = 'gauge-item-geral';
         div.innerHTML = `<canvas id="gauge-geral"></canvas>`;
         container.appendChild(div);
-        renderGauge('gauge-geral', media, "PROGRESSO MÉDIO DA EMPRESA", true);
+        renderGauge('gauge-geral', media, "MÉDIA DE PROGRESSO TOTAL");
     } else {
-        // Agrupa tarefas por projeto para mostrar progresso individual
-        const projetosMap = {};
-        tasks.forEach(t => {
-            if (!projetosMap[t.projectId]) projetosMap[t.projectId] = { name: "Projeto "+t.projectId, total: 0, done: 0 };
-            projetosMap[t.projectId].total++;
-            if (t.status === "Concluída") projetosMap[t.projectId].done++;
-        });
-
-        Object.values(projetosMap).forEach((p, i) => {
-            const perc = Math.round((p.done / p.total) * 100);
+        projetos.forEach((p, i) => {
             const div = document.createElement('div');
             div.className = 'gauge-item';
             div.innerHTML = `<canvas id="g-${i}"></canvas><span>${p.name}</span>`;
             container.appendChild(div);
-            renderGauge(`g-${i}`, perc, "", false);
+            renderGauge(`g-${i}`, p.progress, "");
         });
     }
 
-    const labels = Object.keys(dash.tasksByStatus);
-    const cores = labels.map(l => l==='Concluída'?'#00ff7f':l==='Em revisão'?'#ff4d4d':l==='Em andamento'?'#ffa500':'#3179dd');
-    renderChart('tasksChart', 'bar', labels, Object.values(dash.tasksByStatus), cores);
+    const labels = Object.keys(metrics.tasksByStatus);
+    const coresOrdenadas = ordemFixa.map(status => {
+    switch(status) {
+        case 'A fazer': return '#3179dd';      // Cinza
+        case 'Em andamento': return '#ffa500'; // Laranja
+        case 'Em revisão': return '#ff4d4d';   // Vermelho Alpha
+        case 'Concluída': return '#00ff7f';    // Verde Neon
+        default: return '#504a4a';
+    }
+    });
+    renderChart('tasksChart', 'bar', ordemFixa, dadosOrdenados, coresOrdenadas);
 }
 
-function renderGauge(id, percent, sub, isBig) {
+function renderGauge(id, percent, sub) {
     const ctx = document.getElementById(id).getContext('2d');
     if (chartInstances[id]) chartInstances[id].destroy();
-    
-    // Cores baseadas na sua imagem: <35 Vermelho, <80 Laranja, >80 Verde
     let col = percent > 80 ? '#00ff7f' : percent >= 35 ? '#ffa500' : '#ff4d4d';
-    
     chartInstances[id] = new Chart(ctx, {
         type: 'doughnut',
-        data: { 
-            datasets: [{ 
-                data: [percent, 100 - percent], 
-                backgroundColor: [col, '#1a1c2e'], 
-                circumference: 180, 
-                rotation: 270, 
-                cutout: isBig ? '85%' : '75%', 
-                borderRadius: 5 
-            }] 
-        },
-        options: { 
-            responsive: true, 
-            maintainAspectRatio: false, 
-            plugins: { legend: { display: false }, tooltip: { enabled: false } } 
-        },
+        data: { datasets: [{ data: [percent, 100 - percent], backgroundColor: [col, '#1a1c2e'], circumference: 180, rotation: 270, cutout: '85%', borderRadius: 5 }] },
+        options: { responsive: true, maintainAspectRatio: false, layout: { padding: { bottom: 20 } }, plugins: { legend: { display: false }, tooltip: { enabled: false } } },
         plugins: [{
             afterDraw: (chart) => {
-                const { ctx, chartArea: { top, bottom, left, right } } = chart;
+                const { ctx, chartArea: { left, right, top, bottom } } = chart;
                 const cX = (left + right) / 2, cY = (top + bottom) * 0.85;
                 ctx.save();
                 ctx.fillStyle = '#fff';
-                ctx.font = `bold ${isBig ? '36px' : '18px'} "JetBrains Mono"`;
+                ctx.font = 'bold 40px "JetBrains Mono"';
                 ctx.textAlign = 'center'; ctx.fillText(`${percent}%`, cX, cY);
-                if (sub) { 
-                    ctx.fillStyle = '#9ca3af'; 
-                    ctx.font = '10px "JetBrains Mono"'; 
-                    ctx.fillText(sub, cX, cY + 25); 
-                }
+                if (sub) { ctx.fillStyle = '#9ca3af'; ctx.font = '12px "JetBrains Mono"'; ctx.fillText(sub, cX, cY + 25); }
                 ctx.restore();
             }
         }]
     });
 }
 
-// Funções de Barras e Linha continuam iguais...
 function renderChart(id, type, labels, vals, colors) {
     const ctx = document.getElementById(id).getContext('2d');
     if (chartInstances[id]) chartInstances[id].destroy();
@@ -178,7 +259,15 @@ function processAndRenderActivity(tasks) {
     });
 }
 
-document.addEventListener('DOMContentLoaded', () => { 
-    lucide.createIcons();
-    fetchDashboard(ALL_TOKENS[0]); 
+// 8. AUTO-REFRESH
+function startAutoRefresh() {
+    if (refreshInterval) clearInterval(refreshInterval);
+    refreshInterval = setInterval(() => {
+        // Atualiza apenas os DADOS, não a lista do dropdown
+        changeTeam();
+    }, 5000);
+}
+
+document.addEventListener('visibilitychange', () => {
+    document.visibilityState === 'visible' ? startAutoRefresh() : clearInterval(refreshInterval);
 });
