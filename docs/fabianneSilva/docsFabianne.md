@@ -21,8 +21,8 @@ Para a construção do design, utilizei como referência o site da empresa [Inte
 Assim, o uso do Figma permitiu validar a disposição dos elementos antes da implementação, reduzindo erros e retrabalho durante o desenvolvimento.
 
 ### Visual do Wireframe
-<div>
-  <img src="./figmaFabi.png" alt="Tela do Kanban no figma" width="50%">
+<div align="center">
+  <img src="./figmaFabi.png" alt="Tela do Kanban no figma" width="60%">
 </div>
 
 
