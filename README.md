@@ -105,3 +105,55 @@ Cada integrante também fez uma entrega individual, com documentação e uma tel
 - **Dailys e Alinhamento**: Realizamos reuniões rápidas diárias às 9h para identificar bloqueios (ex: divergências em caminhos de arquivos ou URLs de API).
 - **Gestão de Integração**: Como Scrum Master, atuei na consolidação dos repositórios individuais para a pasta `frontend/`, garantindo que o CSS global (`navibar.css`) não quebrasse os layouts individuais.
 - **Ideação**: Facilitação de dinâmicas de design para garantir que as telas conversassem visualmente entre si.
+
+---
+
+## Relatório de Testes de Usabilidade e Backlog de Melhorias
+
+### **1. Objetivo dos Testes**
+Os testes de usabilidade foram conduzidos com o objetivo de validar a interface do sistema (Dashboard, Kanban e Calendário) com usuários reais. O foco foi identificar o que já funciona bem na experiência do usuário e mapear atritos na interpretação de gráficos, navegação e clareza dos filtros.
+
+### **2. Pontos Positivos (O que funcionou bem)**
+
+Durante as avaliações, os usuários destacaram elementos muito fortes no projeto atual:
+
+* **Identidade Visual Consistente:** O uso do Dark Mode com detalhes em vermelho remete muito bem à marca da Inteli Júnior, criando uma interface moderna e profissional.
+* **Inovação no Cadastro:** A funcionalidade de gerar a descrição da tarefa com auxílio de Inteligência Artificial (IA) foi muito elogiada e vista como um grande diferencial que poupa tempo.
+* **Estrutura Base:** A disposição em colunas do Kanban e a organização em abas do sistema são intuitivas e seguem bons padrões de mercado.
+
+## **3. Oportunidades de Melhoria (Feedbacks Coletados)**
+
+Apesar dos pontos positivos, os testes revelaram atritos específicos que afetam a clareza da informação. Os apontamentos foram divididos por tela:
+
+### 3.1. Dashboard Quantitativo
+
+* Ambiguidade no Gráfico "Projetos por Status": O gráfico atual é pouco intuitivo. O usuário não consegue identificar se os dados ali se referem à quantidade de tarefas concluídas ou ao nível de conclusão geral do projeto. Foi pontuado que uma simples mudança de título ou legenda pode resolver isso.
+* Falta de Clareza Geral: Os gráficos, de maneira geral, precisam ser mais autoexplicativos para que a leitura dos dados seja instantânea.
+* Falta de Filtros Específicos: Os usuários sentiram falta de poder filtrar as tarefas por semana e por pessoa, o que daria uma visão muito melhor e mais tática das atribuições de cada membro da equipe.
+
+### 3.2. Tela de Kanban
+
+* Limitação de Horas: O campo de "horas estimadas" nas tarefas permite entradas irreais. Foi sugerido que esse campo tenha um limite máximo (trava de validação).
+* Inputs Manuais no Formulário: Foi identificado um atrito na criação de tarefas. O usuário precisa digitar manualmente o nome do "Responsável" (Owner) e a "Prioridade". Sugeriram que o nome do responsável já estivesse lá ou que pudesse ter um campo de seleção do responsável ao criar um tarefa dentro de um projeto específico.
+* Responsividade (Mobile): O layout em Grid do Dashboard e do Kanban dificulta a navegação quando acessado pelo celular.
+
+### 3.3. Calendário
+
+* Confusão nos Filtros de Prazo: A diferença entre os filtros "Em dia" e "Até 3 dias" não ficou clara para os usuários, gerando dúvidas sobre o que exatamente cada um exibe.
+* Estética dos Filtros: O design da barra de filtros e seleção de projetos (como o botão "Todos os Projetos") foi considerado esteticamente abaixo do restante do sistema, precisando de um refinamento visual (deixá-lo "mais bonito" e integrado).
+
+### 4. Backlog de Melhorias (Plano de Ação)
+
+Com base na transcrição dos feedbacks, as próximas iterações devem priorizar:
+
+1. Ajustes Rápidos:
+
+    * Renomear Gráficos: Alterar o título do gráfico "Projetos por Status" para algo mais descritivo e melhorar a clareza das legendas dos demais gráficos no Dashboard.
+    * Clarificar Filtros do Calendário: Renomear as tags de "Em dia" e "Até 3 dias" para nomenclaturas inequívocas (ex: "No prazo" e "Vence em breve").
+    * Validação de Input: Adicionar um limite de valor máximo (ex: max="99") no campo numérico de horas estimadas no Kanban.
+
+2. Melhorias de Funcionalidade e UI:
+
+    * Novos Filtros no Dashboard: Implementar dropdowns no topo do Dashboard para filtrar a visão de dados por "Semana" e "Responsável/Membro".
+    * Redesign dos Filtros do Calendário: Refatorar o CSS dos botões de filtro no calendário para que fiquem mais atraentes e alinhados com o design moderno dos cards do Kanban.
+    * Adaptação Mobile: Aplicar Media Queries no CSS para tornar as telas utilizáveis em smartphones.
