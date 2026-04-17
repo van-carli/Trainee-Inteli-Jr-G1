@@ -4,6 +4,8 @@
 
 O **Sistema de Gestão de Projetos - IJ** é uma solução centralizada desenvolvida para otimizar o acompanhamento e a execução dos projetos reais da Inteli Júnior. O sistema atua como um hub administrativo que consome dados em tempo real de uma API dedicada, transformando dados brutos em inteligência visual para gestores e consultores.
 
+[Link do projeto deployado](<link_aqui>)
+
 O projeto foi estruturado em quatro pilares fundamentais de visualização:
 
 - **Dashboard Quantitativo (Analytics)**:
@@ -22,6 +24,19 @@ Para garantir a usabilidade, implementamos **filtros avançados** (por projeto, 
 #### Individual
 
 Cada integrante também fez uma entrega individual, com documentação e uma tela ou componente feito pelo mesmo.
+
+---
+
+## Atuação dos Membros na Entrega em Grupo
+
+| Pessoa | Tela/Componente |
+|--------|---|
+| Vanessa | Dashboard Projetos + add cards |
+| Fabianne | Kanban + manipulação de Cards |
+| Gabriel Domingos | Dashboard Quantitativo + integração das telas |
+| Gabriel Gomes | Calendário + Integração com IA |
+| Eduardo | navBar + Documentação |
+
 
 ---
 
@@ -58,26 +73,18 @@ Cada integrante também fez uma entrega individual, com documentação e uma tel
   - **Chart.js**: Para visualização de métricas no dashboard.
   - **Lucide/FontAwesome**: Para uma interface rica em ícones.
   - **Google Fonts (JetBrains Mono)**: Para uma estética moderna e legível.
+- **Mais de um arquivo css**: Um css isolado para cada tela/componente. Decidimos isso por uma breve comparação entre pontos positivos e negativos:
+  - **Pontos positivos**: Para a dinamica do desenvolvimento, onde cada um do grupo fez uma tela e nem todos tinham experiéncias técnicas. Mas também evita conflitos de sobrescrição de arquivo e facilita a correção de detalhes de uma tela específica.
+  - **Pontos negativos**: Não é o padrão utilizado no mercado e limita a escalabilidade além de gerar muita repetição de código.
+
 
 ---
 
 ## Uso de Inteligência Artificial
 
 - **Google AI Studio (Gemini)**: Utilizado para brainstorming da arquitetura do projeto e geração de ideias para a funcionalidade de "Geração de Descrições" no Kanban.
-- **Antigravity (VS Code Agent)**: Utilizado para refatoração de código, unificação de estilos CSS e auditoria de requisitos técnicos.
+- **Antigravity & VS Code Agent**: Utilizado para refatoração de código, unificação de estilos CSS e auditoria de requisitos técnicos.
 - **Prompt Engineering**: Focamos em prompts estruturados para garantir que o código gerado seguisse as boas práticas de semântica HTML e acessibilidade.
-
----
-
-## Atuação dos Membros na Entrega em Grupo
-
-| Pessoa | Tela/Componente | Endpoints |
-|--------|---|---|
-| Vanessa | Dashboard Projetos | `GET /projects` |
-| Fabianne | Kanban + manipulação de Cards | `GET /tasks`, `PATCH /tasks/{id}/status` |
-| Gabriel Domingos | Dashboard Quantitativo | `GET /dashboard` |
-| Gabriel Gomes | Calendário | `GET /tasks` |
-| Eduardo | navBar + Documentação | `GET /health` |
 
 ---
 
@@ -92,6 +99,9 @@ Cada integrante também fez uma entrega individual, com documentação e uma tel
 **Quinta (16/04):** integração completa, testes com integrantes de projetos da IJ e ajustes finais
 
 **Sexta (17/04):** revisão e entrega
+
+**Board KANBAN da equipe**:
+Utilizamos o projeto do github de kanban para organizar-mos as tarefas de cada um e quando seriam feitas
 
 ---
 
@@ -158,3 +168,7 @@ Com base na transcrição dos feedbacks, as próximas iterações devem prioriza
     - Novos Filtros no Dashboard: Implementar dropdowns no topo do Dashboard para filtrar a visão de dados por "Semana" e "Responsável/Membro".
     - Redesign dos Filtros do Calendário: Refatorar o CSS dos botões de filtro no calendário para que fiquem mais atraentes e alinhados com o design moderno dos cards do Kanban.
     - Adaptação Mobile: Aplicar Media Queries no CSS para tornar as telas utilizáveis em smartphones.
+
+3. Melhorias técnicas:
+
+    - Isolar todo css em um único arquivo global.
