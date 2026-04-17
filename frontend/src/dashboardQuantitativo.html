@@ -13,7 +13,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Lucide para ícones -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link rel="stylesheet" href="../style/navBar.css">
+    <link rel="stylesheet" href="../style/navbar.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 
@@ -60,31 +60,39 @@
                     </div>
                 </div>
 
-                <!-- Gráficos baseados nos objetos da API -->
-                <div class="charts-grid">
-                    <div class="chart-container">
-                        <h3>Status do Projeto</h3>
-                        <div id="projects-canvas-container"><img src="../../" alt=""></div>
-                    </div>
-                    <div class="chart-container">
-                        <h3>Distribuição de Tarefas</h3>
-                        <canvas id="tasksChart"></canvas>
-                    </div>
+            <!-- Gráficos baseados nos objetos da API -->
+            <div class="charts-grid">
+                <div class="chart-container">
+                    <h3>Status das Entragas</h3>
+                    <div id="projects-canvas-container"><img src="../../" alt=""></div> 
                 </div>
-                <!-- Abaixo da sua <section class="charts-grid"> -->
-                <section class="full-width-chart">
-                    <div class="chart-card">
+                <div class="chart-container">
+                    <h3>Distribuição de Tarefas</h3>
+                    <canvas id="tasksChart"></canvas>
+                </div>
+            </div>
+            <section class="full-width-chart">
+                <div class="chart-card">
+                    <div class="chart-header-actions">
                         <h3>Histórico de Atividade</h3>
-                        <div class="canvas-container-history">
-                            <canvas id="activityChart"></canvas>
+                        <!-- Novo Filtro de Pessoa -->
+                        <div class="assignee-filter">
+                            <label for="assigneeSelect"><i class="fa-solid fa-user"></i></label>
+                            <select id="assigneeSelect" onchange="handleAssigneeChange()">
+                                <option value="TODOS">Todos os Responsáveis</option>
+                            </select>
                         </div>
                     </div>
-                </section>
-            </div>
+                    <div class="canvas-container-history">
+                        <canvas id="activityChart"></canvas>
+                    </div>
+                </div>
+            </section>
         </div>
     </div>
+</div>
 
-    <script type="module" src="./js/navBar.js"></script>
+    <script type="module" src="./js/navbar.js"></script>
     <script src="./js/dashboardQuantitativo.js"></script>
 </body>
 

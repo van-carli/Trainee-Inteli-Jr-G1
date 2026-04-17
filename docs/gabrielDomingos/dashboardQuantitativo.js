@@ -1,9 +1,11 @@
-const BASE_URL = 'https://api-ij-treinee.onrender.com';
+// frontend/src/js/dashboardQuantitativo.js
+const BASE_URL = 'https://trainee-projetos-api.vercel.app';
 const ALL_TOKENS = ['equipe-alpha-2026', 'equipe-beta-2026', 'equipe-gamma-2026', 'equipe-delta-2026', 'equipe-epsilon-2026'];
 
 let chartInstances = {};
 let masterProjects = [];
 let refreshInterval;
+let currentLoadedTasks = []; // Armazena as tarefas do filtro atual (equipe ou projeto)
 
 // 1. INICIALIZAÇÃO
 document.addEventListener('DOMContentLoaded', async () => {
@@ -11,6 +13,39 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadDashboardProjects();
     startAutoRefresh();
 });
+
+function handleAssigneeChange() {
+    const selectedPerson = document.getElementById('assigneeSelect').value;
+    
+    if (selectedPerson === "TODOS") {
+        processAndRenderActivity(currentLoadedTasks);
+    } else {
+        const filteredTasks = currentLoadedTasks.filter(t => t.assignee === selectedPerson);
+        processAndRenderActivity(filteredTasks);
+    }
+}
+
+function populateAssigneeFilter(tasks) {
+    const select = document.getElementById('assigneeSelect');
+    const currentValue = select.value; // Salva quem estava selecionado
+    
+    // Pega nomes únicos de responsáveis
+    const assignees = [...new Set(tasks.map(t => t.assignee).filter(Boolean))];
+    
+    select.innerHTML = '<option value="TODOS">Todos os Responsáveis</option>';
+    
+    assignees.sort().forEach(name => {
+        const opt = document.createElement('option');
+        opt.value = name;
+        opt.textContent = name;
+        select.appendChild(opt);
+    });
+
+    // Tenta manter a seleção anterior se ela ainda existir na lista nova
+    if (assignees.includes(currentValue)) {
+        select.value = currentValue;
+    }
+}
 
 // 2. CARREGA LISTA DE PROJETOS (SEM DUPLICATAS)
 async function loadDashboardProjects() {
@@ -58,7 +93,7 @@ async function changeTeam() {
     if (val === "TODOS") {
         titleDisp.innerText = "VISÃO GERAL DA EMPRESA";
         localStorage.removeItem('currentProjectId');
-        await fetchAllData(); // <--- Lógica corrigida abaixo
+        await fetchAllData();
     } else {
         const proj = masterProjects.find(p => p.id == val);
         if (!proj) return;
@@ -70,6 +105,7 @@ async function changeTeam() {
 }
 
 // 4. BUSCA DADOS DE UM PROJETO ESPECÍFICO
+// 4. BUSCA DADOS DE UM PROJETO ESPECÍFICO
 async function fetchSingleProjectData(project) {
     try {
         const resTasks = await fetch(`${BASE_URL}/tasks?projectId=${project.id}`, {
@@ -78,18 +114,21 @@ async function fetchSingleProjectData(project) {
 
         if (resTasks.ok) {
             const tasks = await resTasks.json();
-            const metrics = calculateMetricsFromTasks(tasks, 1);
+            currentLoadedTasks = tasks; // SALVA AS TASKS
+            populateAssigneeFilter(tasks); // ATUALIZA O FILTRO DE PESSOAS
+            
+            const metrics = calculateMetricsFromTasks(tasks, 1, project.progress);
             updateUI(metrics, [project], false);
-            processAndRenderActivity(tasks);
+            
+            // Se houver alguém selecionado no filtro de pessoas, aplica o filtro antes de renderizar
+            handleAssigneeChange(); 
         }
     } catch (e) { console.error(e); }
 }
 
-// 5. VISÃO GERAL CORRIGIDA: Consolidando por Projetos e não por Equipes
+// 5. VISÃO GERAL
 async function fetchAllData() {
     let rawAllTasks = [];
-
-    // Busca todas as tarefas de todas as equipes
     for (const token of ALL_TOKENS) {
         try {
             const res = await fetch(`${BASE_URL}/tasks`, { headers: { 'x-team-token': token } });
@@ -100,27 +139,28 @@ async function fetchAllData() {
         } catch (e) { console.warn(e); }
     }
 
-    // REMOVER DUPLICATAS DE TAREFAS (Pois a API repete as mesmas tasks em cada token)
-    // Usamos o título + ID do projeto como chave única
     const tasksUnicasMap = new Map();
     rawAllTasks.forEach(task => {
         const chaveTask = `${task.title}-${task.projectId}`;
-        if (!tasksUnicasMap.has(chaveTask)) {
-            tasksUnicasMap.set(chaveTask, task);
-        }
+        if (!tasksUnicasMap.has(chaveTask)) tasksUnicasMap.set(chaveTask, task);
     });
 
     const tasksConsolidadas = Array.from(tasksUnicasMap.values());
     
-    // Calcula métricas baseadas na lista única de tarefas
-    const metrics = calculateMetricsFromTasks(tasksConsolidadas, masterProjects.length);
-    
+    currentLoadedTasks = tasksConsolidadas;
+    populateAssigneeFilter(tasksConsolidadas);
+
+    const mediaGeral = Math.round(masterProjects.reduce((acc, p) => acc + (p.progress || 0), 0) / (masterProjects.length || 1));
+    const metrics = calculateMetricsFromTasks(tasksConsolidadas, masterProjects.length, mediaGeral);
+
     updateUI(metrics, masterProjects, true);
+    handleAssigneeChange(); // Aplica filtro de pessoa se houver
     processAndRenderActivity(tasksConsolidadas);
 }
 
 // FUNÇÃO AUXILIAR PARA CALCULAR MÉTRICAS
-function calculateMetricsFromTasks(tasks, totalProjs) {
+// FUNÇÃO AUXILIAR PARA CALCULAR MÉTRICAS (Atualizada com status Concluído)
+function calculateMetricsFromTasks(tasks, totalProjs, progressPercent) {
     const hoje = new Date();
     const tasksByStatus = {};
     let overdue = 0;
@@ -140,12 +180,15 @@ function calculateMetricsFromTasks(tasks, totalProjs) {
 
     const taxaAtraso = overdue / (tasks.length || 1);
 
-    if (overdue > 0 && taxaAtraso > 0.2) { 
-        // Se houver mais de 20% de tarefas atrasadas
+    // Nova Regra: Se o progresso for 100%
+    if (progressPercent >= 100) {
+        healthText = "Concluído";
+        healthClass = "health-prazo"; // Mantém verde
+    } 
+    else if (overdue > 0 && taxaAtraso > 0.2) { 
         healthText = "Crítico";
         healthClass = "health-critico";
     } else if (overdue > 0 || highPriority > (tasks.length * 0.4)) {
-        // Se houver qualquer atraso OU muitas tarefas de alta prioridade acumuladas
         healthText = "Em Risco";
         healthClass = "health-risco";
     }
@@ -156,13 +199,13 @@ function calculateMetricsFromTasks(tasks, totalProjs) {
         overdueTasks: overdue,
         highPriorityTasks: highPriority,
         tasksByStatus: tasksByStatus,
-        health: { text: healthText, class: healthClass } // Retorna a saúde
+        health: { text: healthText, class: healthClass }
     };
 }
 
 // 6. ATUALIZA INTERFACE
 function updateUI(metrics, projetos, isGeral) {
-    // Atualiza os cards (Note que totalProjects foi removido em favor do Health)
+    // Atualiza os cards
     const healthElem = document.getElementById('projectHealth');
     healthElem.innerText = metrics.health.text;
     healthElem.className = metrics.health.class; // Aplica a cor (Vermelho, Laranja ou Verde)
@@ -244,21 +287,140 @@ function renderChart(id, type, labels, vals, colors) {
 }
 
 function processAndRenderActivity(tasks) {
-    const mNames = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
-    const map = {}; mNames.forEach(m => map[m] = 0);
-    tasks.forEach(t => { if(t.dueDate) map[mNames[new Date(t.dueDate).getMonth()]]++; });
-    const ctx = document.getElementById('activityChart').getContext('2d');
-    const grad = ctx.createLinearGradient(0, 0, 0, 400); grad.addColorStop(0, 'rgba(255, 77, 77, 0.4)'); grad.addColorStop(1, 'rgba(255, 77, 77, 0)');
-    if (chartInstances['activityChart']) chartInstances['activityChart'].destroy();
-    chartInstances['activityChart'] = new Chart(ctx, {
-        type: 'line',
-        data: { labels: Object.keys(map), datasets: [{ data: Object.values(map), borderColor: '#ff4d4d', backgroundColor: grad, fill: true, tension: 0.4, pointRadius: 4, pointBackgroundColor: '#ff4d4d' }] },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
-            scales: { y: { ticks: { color: '#9ca3af', font: { family: 'JetBrains Mono' } }, grid: { color: 'rgba(255,255,255,0.05)' } },
-                      x: { ticks: { color: '#9ca3af', font: { family: 'JetBrains Mono' } }, grid: { display: false } } } }
+    const validTasks = tasks.filter(t => t.dueDate);
+    
+    if (validTasks.length === 0) {
+        if (chartInstances['activityChart']) chartInstances['activityChart'].destroy();
+        return;
+    }
+
+    // 1. Encontrar a primeira e última data
+    const dates = validTasks.map(t => new Date(t.dueDate + 'T00:00:00')); // Adicionado T00:00:00 para evitar erro de fuso
+    const minDate = new Date(Math.min(...dates));
+    const maxDate = new Date(Math.max(...dates));
+
+    // 2. Criar margem de 3 dias antes e 3 dias depois para o gráfico não "bater na parede"
+    let iterDate = new Date(minDate);
+    iterDate.setDate(iterDate.getDate() - 3);
+    
+    const endDate = new Date(maxDate);
+    endDate.setDate(endDate.getDate() + 3);
+
+    const labels = [];
+    const counts = {};
+
+    // 3. Gerar a sequência de TODOS os dias entre o início e o fim
+    while (iterDate <= endDate) {
+        const dayLabel = iterDate.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+        labels.push(dayLabel);
+        counts[dayLabel] = 0;
+        iterDate.setDate(iterDate.getDate() + 1);
+    }
+
+    // 4. Preencher as tarefas nos dias correspondentes
+    validTasks.forEach(t => {
+        const taskDate = new Date(t.dueDate + 'T00:00:00');
+        const label = taskDate.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+        if (counts[label] !== undefined) counts[label]++;
     });
+
+    const dataValues = labels.map(l => counts[l]);
+    renderActivityChart('activityChart', labels, dataValues);
 }
 
+function renderActivityChart(canvasId, labels, dataValues) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const COR_TEXTO = '#9ca3af';
+    const COR_ACENTO = '#ff4d4d';
+
+    const grad = ctx.createLinearGradient(0, 0, 0, 300);
+    grad.addColorStop(0, 'rgba(255, 77, 77, 0.5)'); 
+    grad.addColorStop(1, 'rgba(255, 77, 77, 0)');   
+
+    if (chartInstances[canvasId]) chartInstances[canvasId].destroy();
+
+    chartInstances[canvasId] = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels, // Ex: ["10/04", "11/04"...]
+            datasets: [{
+                data: dataValues,
+                borderColor: COR_ACENTO,
+                backgroundColor: grad,
+                fill: true,
+                tension: 0.4,
+                pointRadius: 0,
+                pointHoverRadius: 6,
+                pointBackgroundColor: COR_ACENTO,
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { intersect: false, mode: 'index' },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: '#0e1021',
+                    titleFont: { family: 'JetBrains Mono' },
+                    bodyFont: { family: 'JetBrains Mono' },
+                    callbacks: {
+                        title: (context) => `Data: ${context[0].label}`,
+                        label: (context) => ` Entregas: ${context.parsed.y}`
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: { color: COR_TEXTO, font: { family: 'JetBrains Mono', size: 10 }, stepSize: 1 },
+                    grid: { color: 'rgba(255, 255, 255, 0.05)' }
+                },
+                // EIXO 1: Mostra os DIAS
+                x: {
+                    ticks: { 
+                        color: COR_TEXTO, 
+                        font: { family: 'JetBrains Mono', size: 9 },
+                        autoSkip: true,
+                        maxTicksLimit: 20,
+                        callback: function(value, index) {
+                            // Retorna apenas o dia (remove o mês da label principal para não poluir)
+                            const fullLabel = this.getLabelForValue(value);
+                            return fullLabel.split('/')[0]; 
+                        }
+                    },
+                    grid: { display: false }
+                },
+                // EIXO 2: Mostra o MÊS (Descrição adicional)
+                xMonth: {
+                    grid: { drawOnChartArea: false, color: 'rgba(255, 255, 255, 0.1)' },
+                    ticks: {
+                        color: COR_ACENTO,
+                        font: { family: 'JetBrains Mono', size: 11, weight: 'bold' },
+                        autoSkip: false,
+                        callback: function(value, index) {
+                            const fullLabel = this.getLabelForValue(index);
+                            const [dia, mesNum] = fullLabel.split('/');
+                            
+                            // Mapeamento de nomes de meses
+                            const meses = ["JAN", "FEV", "MAR", "ABR", "MAI", "JUN", "JUL", "AGO", "SET", "OUT", "NOV", "DEZ"];
+                            const nomeMes = meses[parseInt(mesNum) - 1];
+
+                            // Só exibe o nome do mês no dia 01 ou no primeiro ponto do gráfico
+                            if (dia === "01" || index === 0) {
+                                return nomeMes;
+                            }
+                            return "";
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
 // 8. AUTO-REFRESH
 function startAutoRefresh() {
     if (refreshInterval) clearInterval(refreshInterval);

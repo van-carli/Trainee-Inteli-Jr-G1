@@ -5,6 +5,7 @@ const ALL_TOKENS = ['equipe-alpha-2026', 'equipe-beta-2026', 'equipe-gamma-2026'
 let chartInstances = {};
 let masterProjects = [];
 let refreshInterval;
+let currentLoadedTasks = []; // Armazena as tarefas do filtro atual (equipe ou projeto)
 
 // 1. INICIALIZAÇÃO
 document.addEventListener('DOMContentLoaded', async () => {
@@ -12,6 +13,39 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadDashboardProjects();
     startAutoRefresh();
 });
+
+function handleAssigneeChange() {
+    const selectedPerson = document.getElementById('assigneeSelect').value;
+    
+    if (selectedPerson === "TODOS") {
+        processAndRenderActivity(currentLoadedTasks);
+    } else {
+        const filteredTasks = currentLoadedTasks.filter(t => t.assignee === selectedPerson);
+        processAndRenderActivity(filteredTasks);
+    }
+}
+
+function populateAssigneeFilter(tasks) {
+    const select = document.getElementById('assigneeSelect');
+    const currentValue = select.value; // Salva quem estava selecionado
+    
+    // Pega nomes únicos de responsáveis
+    const assignees = [...new Set(tasks.map(t => t.assignee).filter(Boolean))];
+    
+    select.innerHTML = '<option value="TODOS">Todos os Responsáveis</option>';
+    
+    assignees.sort().forEach(name => {
+        const opt = document.createElement('option');
+        opt.value = name;
+        opt.textContent = name;
+        select.appendChild(opt);
+    });
+
+    // Tenta manter a seleção anterior se ela ainda existir na lista nova
+    if (assignees.includes(currentValue)) {
+        select.value = currentValue;
+    }
+}
 
 // 2. CARREGA LISTA DE PROJETOS (SEM DUPLICATAS)
 async function loadDashboardProjects() {
@@ -71,6 +105,7 @@ async function changeTeam() {
 }
 
 // 4. BUSCA DADOS DE UM PROJETO ESPECÍFICO
+// 4. BUSCA DADOS DE UM PROJETO ESPECÍFICO
 async function fetchSingleProjectData(project) {
     try {
         const resTasks = await fetch(`${BASE_URL}/tasks?projectId=${project.id}`, {
@@ -79,18 +114,21 @@ async function fetchSingleProjectData(project) {
 
         if (resTasks.ok) {
             const tasks = await resTasks.json();
-            const metrics = calculateMetricsFromTasks(tasks, 1);
+            currentLoadedTasks = tasks; // SALVA AS TASKS
+            populateAssigneeFilter(tasks); // ATUALIZA O FILTRO DE PESSOAS
+            
+            const metrics = calculateMetricsFromTasks(tasks, 1, project.progress);
             updateUI(metrics, [project], false);
-            processAndRenderActivity(tasks);
+            
+            // Se houver alguém selecionado no filtro de pessoas, aplica o filtro antes de renderizar
+            handleAssigneeChange(); 
         }
     } catch (e) { console.error(e); }
 }
 
-// 5. VISÃO GERAL CORRIGIDA: Consolidando por Projetos e não por Equipes
+// 5. VISÃO GERAL
 async function fetchAllData() {
     let rawAllTasks = [];
-
-    // Busca todas as tarefas de todas as equipes
     for (const token of ALL_TOKENS) {
         try {
             const res = await fetch(`${BASE_URL}/tasks`, { headers: { 'x-team-token': token } });
@@ -101,27 +139,28 @@ async function fetchAllData() {
         } catch (e) { console.warn(e); }
     }
 
-    // REMOVER DUPLICATAS DE TAREFAS (Pois a API repete as mesmas tasks em cada token)
-    // Usamos o título + ID do projeto como chave única
     const tasksUnicasMap = new Map();
     rawAllTasks.forEach(task => {
         const chaveTask = `${task.title}-${task.projectId}`;
-        if (!tasksUnicasMap.has(chaveTask)) {
-            tasksUnicasMap.set(chaveTask, task);
-        }
+        if (!tasksUnicasMap.has(chaveTask)) tasksUnicasMap.set(chaveTask, task);
     });
 
     const tasksConsolidadas = Array.from(tasksUnicasMap.values());
     
-    // Calcula métricas baseadas na lista única de tarefas
-    const metrics = calculateMetricsFromTasks(tasksConsolidadas, masterProjects.length);
-    
+    currentLoadedTasks = tasksConsolidadas;
+    populateAssigneeFilter(tasksConsolidadas);
+
+    const mediaGeral = Math.round(masterProjects.reduce((acc, p) => acc + (p.progress || 0), 0) / (masterProjects.length || 1));
+    const metrics = calculateMetricsFromTasks(tasksConsolidadas, masterProjects.length, mediaGeral);
+
     updateUI(metrics, masterProjects, true);
+    handleAssigneeChange(); // Aplica filtro de pessoa se houver
     processAndRenderActivity(tasksConsolidadas);
 }
 
 // FUNÇÃO AUXILIAR PARA CALCULAR MÉTRICAS
-function calculateMetricsFromTasks(tasks, totalProjs) {
+// FUNÇÃO AUXILIAR PARA CALCULAR MÉTRICAS (Atualizada com status Concluído)
+function calculateMetricsFromTasks(tasks, totalProjs, progressPercent) {
     const hoje = new Date();
     const tasksByStatus = {};
     let overdue = 0;
@@ -141,12 +180,15 @@ function calculateMetricsFromTasks(tasks, totalProjs) {
 
     const taxaAtraso = overdue / (tasks.length || 1);
 
-    if (overdue > 0 && taxaAtraso > 0.2) { 
-        // Se houver mais de 20% de tarefas atrasadas
+    // Nova Regra: Se o progresso for 100%
+    if (progressPercent >= 100) {
+        healthText = "Concluído";
+        healthClass = "health-prazo"; // Mantém verde
+    } 
+    else if (overdue > 0 && taxaAtraso > 0.2) { 
         healthText = "Crítico";
         healthClass = "health-critico";
     } else if (overdue > 0 || highPriority > (tasks.length * 0.4)) {
-        // Se houver qualquer atraso OU muitas tarefas de alta prioridade acumuladas
         healthText = "Em Risco";
         healthClass = "health-risco";
     }

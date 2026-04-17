@@ -30,19 +30,6 @@ body {
     overflow-x: hidden;
 }
 
-/* Efeito de Pontos (Dots Background) conforme o Kanban */
-body::before {
-    content: "";
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-image: radial-gradient(rgba(255, 77, 77, 0.15) 1.5px, transparent 1px);
-    background-size: 30px 30px;
-    z-index: -1;
-    pointer-events: none;
-}
 
 /* Main Content */
 .content { flex: 1; padding: 3rem; }
@@ -223,4 +210,40 @@ header p { color: var(--accent); font-size: 0.9rem; font-weight: 500; }
 #projectHealth {
     font-size: 1.8rem; /* Um pouco menor que os números para caber a palavra */
     text-transform: uppercase;
+}
+
+.chart-header-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.assignee-filter {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--bg);
+    padding: 5px 15px;
+    border-radius: 100px;
+    border: 1px solid var(--border);
+}
+
+.assignee-filter label {
+    color: var(--accent);
+    font-size: 0.8rem;
+}
+
+#assigneeSelect {
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-family: 'JetBrains Mono';
+    font-size: 0.8rem;
+    cursor: pointer;
+    outline: none;
+}
+
+#assigneeSelect option {
+    background: var(--card);
 }

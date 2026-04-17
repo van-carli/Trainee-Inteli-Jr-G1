@@ -211,3 +211,39 @@ header p { color: var(--accent); font-size: 0.9rem; font-weight: 500; }
     font-size: 1.8rem; /* Um pouco menor que os números para caber a palavra */
     text-transform: uppercase;
 }
+
+.chart-header-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.assignee-filter {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--bg);
+    padding: 5px 15px;
+    border-radius: 100px;
+    border: 1px solid var(--border);
+}
+
+.assignee-filter label {
+    color: var(--accent);
+    font-size: 0.8rem;
+}
+
+#assigneeSelect {
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-family: 'JetBrains Mono';
+    font-size: 0.8rem;
+    cursor: pointer;
+    outline: none;
+}
+
+#assigneeSelect option {
+    background: var(--card);
+}

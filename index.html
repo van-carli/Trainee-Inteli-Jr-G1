@@ -1,31 +1,29 @@
 <!doctype html>
 <html lang="pt-BR">
-
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dashboard de Projetos - Inteli Júnior</title>
-  <link rel="icon" type="image/svg+xml" href="./frontend/assets/logo-ij.svg">
-  <link rel="stylesheet" href="./frontend/style/dashboard.css">
-  <link rel="stylesheet" href="./frontend/style/navBar.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-</head>
-
-<body>
-  <!-- Main Content -->
-  <main class="main-content">
-    <header class="top-bar">
-      <div class="title-area">
-        <h1>Visão Geral - Projetos</h1>
-      </div>
-      <div class="actions">
-        <div class="search-container">
-          <span class="search-icon"></span>
-          <input type="text" id="searchInput" placeholder="Buscar projeto pelo nome ou responsável ...">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard de Projetos - Inteli Júnior</title>
+    <link rel="icon" type="image/svg+xml" href="./frontend/assets/logo-ij.svg">
+    <link rel="stylesheet" href="./frontend/style/dashboard.css">
+    <link rel="stylesheet" href="./frontend/style/navbar.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  </head>
+  <body>
+    <!-- Main Content -->
+    <main class="main-content">
+      <header class="top-bar">
+        <div class="title-area">
+          <h1>Visão Geral - Projetos</h1>
         </div>
-        <button id="btnOpenModal" class="btn-new">+ Novo projeto</button>
-      </div>
-    </header>
+        <div class="actions">
+          <div class="search-container">
+            <span class="search-icon"></span>
+            <input type="text" id="searchInput" placeholder="Buscar projeto pelo nome ou responsável ...">
+          </div>
+          <button id="btnOpenModal" class="btn-new">+ Novo projeto</button>
+        </div>
+      </header>
 
     <div class="projects-grid" id="projectsGrid">
       <!-- Dinamicamente preenchido -->
@@ -90,8 +88,7 @@
     </div>
   </div>
 
-  <script type="module" src="./frontend/src/js/navBar.js"></script>
-  <script type="module" src="./frontend/src/js/dashboard.js"></script>
-</body>
-
+    <script type="module" src="./frontend/src/js/navbar.js"></script>
+    <script type="module" src="./frontend/src/js/dashboard.js"></script>
+  </body>
 </html>
