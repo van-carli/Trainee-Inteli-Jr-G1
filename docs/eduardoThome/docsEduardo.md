@@ -1,41 +1,44 @@
-# Documentação Individual: [Nome do seu Componente/Tela]
-**Responsável:** [Seu Nome Completo]
+# Documentação Individual: Eduardo - Nav Bar
+
+**Responsável:** Eduardo Totti Thomé
 
 ---
 
 ## 1. Wireframe
-> Descreva aqui a estrutura visual pensada para o componente antes da implementação.
+
+Para fazer uma barra lateral de navegação entre as telas tive como inspiração algumas barras de navegação usadas em sites de tecnologia, e pensei em uma estrutura que fosse simples e funcional:
+
+- A logo da Inteli Junior
+- Ícone para diminuir/aumentar a barra lateral
+- Links para as telas
+- Um indicador de status da API
 
 ### Descrição do Design
-* **Ferramenta utilizada:** [Ex: Figma / Desenho à mão]
-* **Conceito:** [Explique brevemente por que você organizou os elementos dessa forma. Ex: "Foquei em um card de tarefa que prioriza a data de entrega para facilitar a gestão de tempo."]
+
+* **Ferramenta utilizada:** feito a mão
+- **Conceito:** A ideia era ter um componente limpo visualmente e de que fosse fácil de usar, além de útil e que combinasse com as outras telas, por isso optei por um design minimalista e moderno, listando as telas em ordem de prioridade e com um indicador de status da API.
 
 ### Visual do Wireframe
-![Legenda da Imagem](link-da-sua-imagem-ou-caminho-do-arquivo)
+
+![Rascunho da barra lateral aumentada e diminuida](rascunhoNav.png)
 
 ---
 
 ## 2. Funcionalidades do Componente
 
-* **Ação principal:** [Ex: Exibir uma lista de tarefas filtradas por status.]
-* **Interações:**
-    * [Ex: Botão de "Concluir" que muda o estilo do card.]
-    * [Ex: Hover no card para mostrar descrição detalhada.]
-    * [Ex: Clique no avatar do usuário para ver perfil.]
+- **Ação principal:** navegação entre as telas
+- **Interações:**
+  - Botão de diminuir/aumentar a barra lateral
+  - Clique nos botões para navegar entre as telas
 
 ---
 
 ## 3. Dependências Necessárias
-> O que o componente precisa para existir e funcionar corretamente?
 
-**Exemplo:** 
-
-* **Estrutura:** HTML5 semântico.
-* **Estilização:** CSS3 (Variáveis de cores, Flexbox/Grid).
-* **Dados (API):** O componente consome os seguintes campos da API:
-    * `GET /tasks`: `title`, `deadline`, `status`.
-    * `GET /users`: `name`, `avatar_url`.
-* **Bibliotecas Externas:** [Ex: FontAwesome para ícones / Google Fonts].
+- **Estrutura:** HTML
+- **Estilização:** CSS
+- **Dados (API):** O componente consome o seguinte campo da API:
+  - `GET /health`: `status`.
 
 ---
 
@@ -43,11 +46,9 @@
 
 **Exemplo:**
 
-* **Ferramenta utilizada:** [Ex: ChatGPT-4o]
-* **Finalidade:** [Seja específico. Exemplos abaixo:]
-    * *Ex 1: "Utilizei para gerar a estrutura básica do CSS Grid para o layout responsivo."*
-    * *Ex 2: "Solicitei sugestões de acessibilidade (leitura de tela) para os botões do componente."*
-    * *Ex 3: "Não utilizei ferramentas de IA para este componente."*
-* **Reflexão:** [Ex: "A IA ajudou a acelerar a escrita do CSS, mas precisei ajustar manualmente os seletores para manter a organização do código."]
+- **Ferramenta utilizada:** Google AI Studio build
+- **Finalidade:**
+A IA foi utilizada para auxiliar na escrita do código, gerando sugestões de estrutura e organização do código. Também foi utilizada para correção de bugs no geral na integração com as outras telas e arquivos.
+- **Reflexão:** A IA ajudou a acelerar a escrita do código, mas precisei ajustar manualmente os seletores para manter a organização do código.
 
 ---
