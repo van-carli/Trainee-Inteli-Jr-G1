@@ -21,7 +21,10 @@ Para a construção do design, utilizei como referência o site da empresa [Inte
 Assim, o uso do Figma permitiu validar a disposição dos elementos antes da implementação, reduzindo erros e retrabalho durante o desenvolvimento.
 
 ### Visual do Wireframe
-![Tela do Kanban no figma](./figmaFabi.png)
+<div>
+  <img src="./figmaFabi.png" alt="Tela do Kanban no figma" width="50%">
+</div>
+
 
 ---
 
@@ -64,13 +67,12 @@ O componente tem como principal função **gerenciar tarefas em um quadro Kanban
 - A ação dispara uma requisição para a API.  
 - O card é removido da interface após confirmação.  
 
-
 ---
 
 ## 3. Dependências Necessárias
 
 ### HTML
-- Utilização de **HTML5 semântico** para estruturar a aplicação.
+- Utilizado para estruturar a aplicação.
 - Divisão principal:
   - `header` → título, busca e botão de criar tarefa  
   - `main` → área do quadro Kanban  
