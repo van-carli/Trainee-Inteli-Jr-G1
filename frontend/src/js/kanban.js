@@ -177,10 +177,14 @@ function isDescriptionComplete(text) {
 }
 
 // --- LÓGICA DO KANBAN ---
+
+// Busca tarefas da API filtrando pelo projeto atual
 async function fetchTasks() {
     try {
         const response = await fetch(`${API_BASE_URL}/tasks?projectId=${CURRENT_PROJECT_ID}`, { headers });
         if (!response.ok) throw new Error('Falha ao buscar tarefas');
+
+        // Salva tarefas no estado global
         tasks = await response.json();
         renderTasks();
     } catch (error) {
@@ -188,9 +192,12 @@ async function fetchTasks() {
     }
 }
 
+// Renderiza tarefas nas colunas (com filtro opcional)
 function renderTasks(filter = '') {
+    // Limpa todas as colunas antes de renderizar
     [colTodo, colDoing, colReview, colDone].forEach(col => col.innerHTML = '');
 
+    // Filtra tarefas por título, responsável ou prioridade
     const filtered = tasks.filter(task => {
         const search = filter.toLowerCase();
         return (task.title?.toLowerCase() || '').includes(search) || 
@@ -198,6 +205,7 @@ function renderTasks(filter = '') {
                (task.priority?.toLowerCase() || '').includes(search);
     });
 
+    // Cria e distribui os cards nas colunas
     filtered.forEach(task => {
         const card = createTaskCard(task);
         if (task.status === 'A fazer') colTodo.appendChild(card);
@@ -206,18 +214,22 @@ function renderTasks(filter = '') {
         else if (task.status === 'Concluída') colDone.appendChild(card);
     });
 
+    // Recarrega os ícones
     if (window.lucide) window.lucide.createIcons();
 }
 
+// Cria o elemento visual (card) de uma tarefa
 function createTaskCard(task) {
     const card = document.createElement('div');
     card.className = 'task-card';
     card.draggable = true;
     card.dataset.id = task.id;
 
+    // Define prioridade e classe CSS correspondente
     const p = task.priority || 'Média';
     const priorityClass = `priority-${p.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")}`;
 
+    // Estrutura HTML do card
     card.innerHTML = `
         <div class="card-header">
             <span class="priority-badge ${priorityClass}">${p}</span>
@@ -235,8 +247,17 @@ function createTaskCard(task) {
         </div>
     `;
 
-    card.addEventListener('dragstart', () => { card.classList.add('dragging'); draggedTaskId = task.id; });
-    card.addEventListener('dragend', () => { card.classList.remove('dragging'); draggedTaskId = null; });
+    // Evento de início do drag
+    card.addEventListener('dragstart', () => { 
+        card.classList.add('dragging'); 
+        draggedTaskId = task.id; 
+    });
+
+    // Evento de fim do drag
+    card.addEventListener('dragend', () => { 
+        card.classList.remove('dragging'); 
+        draggedTaskId = null; 
+    });
 
     // ===== DELETE COM CONFIRMAÇÃO =====
     card.querySelector('.delete-btn').addEventListener('click', (e) => {
@@ -245,6 +266,7 @@ function createTaskCard(task) {
         // Evita duplicar caixa de confirmação
         if (card.querySelector('.delete-confirm')) return;
 
+        // Adiciona confirmação no card
         card.innerHTML += `
             <div class="delete-confirm">
                 Excluir tarefa?
@@ -271,27 +293,36 @@ function createTaskCard(task) {
     return card;
 }
 
+// Configura todos os eventos da aplicação
 function setupEventListeners() {
+    // Abrir modal
     document.getElementById('open-modal-btn').onclick = () => taskModal.classList.remove('hidden');
+
+    // Fechar modal
     document.getElementById('close-modal-btn').onclick = closeModal;
+
+    // Cancelar modal da API key
     apiKeyCancelBtn.onclick = () => closeApiKeyModal('');
     apiKeyCancelButton.onclick = () => closeApiKeyModal('');
 
+    // Envio do formulário da API key
     apiKeyForm.addEventListener('submit', (event) => {
         event.preventDefault();
         const normalizedKey = apiKeyInput.value.trim();
 
+        // Validação básica
         if (!normalizedKey) {
             apiKeyError.classList.remove('hidden');
             apiKeyInput.focus();
             return;
         }
 
+        // Salva no localStorage
         localStorage.setItem('geminiApiKey', normalizedKey);
         closeApiKeyModal(normalizedKey);
     });
     
-    // Configuração do Botão de IA (Lógica corrigida)
+    // Botão de gerar descrição com IA
     aiDescriptionBtn.addEventListener('click', async () => {
         const title = titleInput.value.trim();
         if (!title) return alert("Digite o título primeiro.");
@@ -299,8 +330,11 @@ function setupEventListeners() {
         try {
             aiDescriptionBtn.disabled = true;
             aiDescriptionBtn.innerText = "Gerando...";
+
+            // Chama IA para gerar descrição
             const desc = await generateDescriptionWithGemini(title);
             descriptionInput.value = desc;
+
         } catch (error) {
             alert(error.message || 'Erro ao gerar descrição com Gemini.');
         } finally {
@@ -309,8 +343,10 @@ function setupEventListeners() {
         }
     });
 
+    // Envio do formulário de tarefa
     taskForm.onsubmit = async (e) => {
         e.preventDefault();
+
         const data = {
             title: titleInput.value,
             description: descriptionInput.value,
@@ -319,15 +355,19 @@ function setupEventListeners() {
             dueDate: document.getElementById('dueDate').value,
             estimatedHours: document.getElementById('estimatedHours').value
         };
+
         await createTask(data);
     };
 
+    // Busca dinâmica
     searchInput.oninput = (e) => renderTasks(e.target.value);
 
     // Configuração do Drag and Drop
     document.querySelectorAll('.kanban-column').forEach(column => {
         const dropZone = column.querySelector('.column-cards');
+
         dropZone.addEventListener('dragover', (e) => e.preventDefault());
+
         dropZone.addEventListener('drop', (e) => {
             e.preventDefault();
             if (draggedTaskId) updateTaskStatus(draggedTaskId, column.dataset.status);
@@ -335,17 +375,21 @@ function setupEventListeners() {
     });
 }
 
+// Atualiza status da tarefa na API e localmente
 async function updateTaskStatus(taskId, newStatus) {
     await fetch(`${API_BASE_URL}/tasks/${taskId}/status`, {
         method: 'PATCH',
         headers,
         body: JSON.stringify({ status: newStatus })
     });
+
     const task = tasks.find(t => t.id == taskId);
     if (task) task.status = newStatus;
+
     renderTasks(searchInput.value);
 }
 
+// Cria nova tarefa
 async function createTask(taskData) {
     const response = await fetch(`${API_BASE_URL}/tasks`, {
         method: 'POST',
@@ -361,6 +405,8 @@ async function createTask(taskData) {
             estimatedHours: Number(taskData.estimatedHours)
         })
     });
+
+    // Se deu certo, adiciona no estado e renderiza
     if (response.ok) {
         const res = await response.json();
         tasks.push(res.task);
@@ -388,4 +434,8 @@ async function deleteTask(taskId) {
     }
 }
 
-function closeModal() { taskModal.classList.add('hidden'); taskForm.reset(); }
+// Fecha modal e limpa formulário
+function closeModal() { 
+    taskModal.classList.add('hidden'); 
+    taskForm.reset(); 
+}
