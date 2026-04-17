@@ -35,16 +35,41 @@ body {
 /* Ajuste local desta tela para encaixar melhor com a sidebar */
 body .main-content {
     padding: 0.3rem 0.8rem 0.55rem;
-    min-height: 100dvh;
+    height: 100vh;
     display: flex;
     align-items: stretch;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+}
+
+body .main-content::-webkit-scrollbar {
+    width: 8px;
+}
+
+body .main-content::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+body .main-content::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+}
+
+body .main-content::-webkit-scrollbar-thumb:hover {
+    background: var(--accent);
+}
+
+body .main-content::-webkit-scrollbar-corner {
+    background: transparent;
 }
 
 
 .project-calendar {
     width: min(1280px, 100%);
     margin: 0 auto;
-    height: calc(100dvh - 0.9rem);
+    min-height: calc(100dvh - 0.9rem);
     display: grid;
     gap: 12px;
     grid-template-rows: auto auto auto minmax(0, 1fr) auto;
