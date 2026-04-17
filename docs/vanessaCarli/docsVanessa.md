@@ -35,11 +35,14 @@
     * **Criação de Projetos:** Abertura de uma janela de formulário ao clicar em "+ Novo projeto", permitindo o input de dados como cliente, descrição, prioridade e prazos.
 
     * **Feedback Visual:** Efeitos de hover nos cards para indicar interatividade e barras de progresso que refletem o status atual de cada entrega.
+ 
+Observação: Foi feita a integração do Dashboard de projetos com a Navbar também.
+
 ---
 
 ## 3. Dependências Necessárias
 
-* **Estrutura:** HTML5 semântico (uso de tags como <main>, <section>, e <header>).
+* **Estrutura:** HTML5 semântico.
 
 * **Estilização:** CSS3 puro, utilizando:
 
