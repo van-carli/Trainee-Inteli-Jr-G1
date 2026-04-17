@@ -1,10 +1,10 @@
-// frontend/src/js/navibar.js
+// frontend/src/js/navBar.js
 
 function initSidebar() {
     // 1. Identifica a localização atual para calcular os caminhos
     const path = window.location.pathname;
     const isInSrcFolder = path.includes('/frontend/src/');
-    
+
     // Se estiver dentro de /src/, o link para index está 2 níveis acima (../../)
     // Se estiver na raiz, o link para src está em ./frontend/src/
     const toRoot = isInSrcFolder ? "../../" : "./";
@@ -57,7 +57,7 @@ function initSidebar() {
     // --- Lógica de interação (Toggle, Active Link, etc) ---
     const sidebar = document.getElementById('sidebar');
     const toggleBtn = document.getElementById('toggle-btn');
-    
+
     toggleBtn.addEventListener('click', () => {
         sidebar.classList.toggle('collapsed');
         localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed'));
@@ -72,7 +72,7 @@ function initSidebar() {
         // Pega apenas o nome do arquivo (ex: calendar.html) para comparar
         const linkPage = link.getAttribute('href').split('/').pop();
         const currentPage = path.split('/').pop() || 'index.html';
-        
+
         if (linkPage === currentPage) {
             link.closest('.nav-item').classList.add('active');
         }
@@ -81,7 +81,7 @@ function initSidebar() {
     // Se estiver no kanban, ativa "Projetos IJ"
     if (window.location.pathname.includes("kanban")) {
         const linkProjetos = document.getElementById("link-projetos");
-        
+
         if (linkProjetos) {
             linkProjetos.closest('.nav-item').classList.add('active');
         }
@@ -95,7 +95,7 @@ async function checkApiHealth() {
     const txt = document.getElementById('status-text');
     try {
         const res = await fetch('https://trainee-projetos-api.vercel.app/health');
-        if(res.ok) {
+        if (res.ok) {
             dot.className = 'status-dot online';
             txt.innerText = 'Online';
         }

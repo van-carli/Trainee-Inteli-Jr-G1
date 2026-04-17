@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,78 +12,80 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Lucide para ícones -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link rel="stylesheet" href="/frontend/style/navibar.css">
+    <link rel="stylesheet" href="/frontend/style/navBar.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
+
 <body>
     <main class="main-content">
-    <div class="dashboard-wrapper">
-        <main class="content">
-            <header>
-                <div>
-                    <h1>Métricas do Projeto</h1>
-                    <p id="team-name">Equipe Alpha 2026</p>
-                </div>
-            </header>
+        <div class="dashboard-wrapper">
+            <main class="content">
+                <header>
+                    <div>
+                        <h1>Métricas do Projeto</h1>
+                        <p id="team-name">Equipe Alpha 2026</p>
+                    </div>
+                </header>
 
-            <!-- No seu dashboard.html, dentro do header ou acima dos cards -->
-            <div class="filter-area">
-                <label for="teamSelect">Selecionar Projeto:</label>
-                <select id="teamSelect" onchange="changeTeam()">
-                    <option value="equipe-alpha-2026">Equipe Alpha</option>
-                    <option value="equipe-beta-2026">Equipe Beta</option>
-                    <option value="equipe-gamma-2026">Equipe Gamma</option>
-                    <option value="equipe-delta-2026">Equipe Delta</option>
-                    <option value="equipe-epsilon-2026">Equipe Epsilon</option>
-                    <option value="TODAS">Visão Geral (Todas)</option>
-                </select>
-            </div>
+                <!-- No seu dashboard.html, dentro do header ou acima dos cards -->
+                <div class="filter-area">
+                    <label for="teamSelect">Selecionar Projeto:</label>
+                    <select id="teamSelect" onchange="changeTeam()">
+                        <option value="equipe-alpha-2026">Equipe Alpha</option>
+                        <option value="equipe-beta-2026">Equipe Beta</option>
+                        <option value="equipe-gamma-2026">Equipe Gamma</option>
+                        <option value="equipe-delta-2026">Equipe Delta</option>
+                        <option value="equipe-epsilon-2026">Equipe Epsilon</option>
+                        <option value="TODAS">Visão Geral (Todas)</option>
+                    </select>
+                </div>
 
-            <!-- Cards com os dados diretos da API -->
-            <div class="metrics-grid">
-                <div class="card" id="cardHealth">
-                    <span class="card-label">Saúde do Projeto</span>
-                    <h2 id="projectHealth">---</h2>
-                </div>
-                <div class="card">
-                    <span class="card-label">Total de Tarefas</span>
-                    <h2 id="totalTasks">0</h2>
-                </div>
-                <div class="card alert">
-                    <span class="card-label">Tarefas Atrasadas</span>
-                    <h2 id="overdueTasks">0</h2>
-                </div>
-                <div class="card warning">
-                    <span class="card-label">Alta Prioridade</span>
-                    <h2 id="highPriorityTasks">0</h2>
-                </div>
-            </div>
-
-            <!-- Gráficos baseados nos objetos da API -->
-            <div class="charts-grid">
-                <div class="chart-container">
-                    <h3>Status do Projeto</h3>
-                    <div id="projects-canvas-container"><img src="../../" alt=""></div> 
-                </div>
-                <div class="chart-container">
-                    <h3>Distribuição de Tarefas</h3>
-                    <canvas id="tasksChart"></canvas>
-                </div>
-            </div>
-            <!-- Abaixo da sua <section class="charts-grid"> -->
-            <section class="full-width-chart">
-                <div class="chart-card">
-                    <h3>Histórico de Atividade</h3>
-                    <div class="canvas-container-history">
-                        <canvas id="activityChart"></canvas>
+                <!-- Cards com os dados diretos da API -->
+                <div class="metrics-grid">
+                    <div class="card" id="cardHealth">
+                        <span class="card-label">Saúde do Projeto</span>
+                        <h2 id="projectHealth">---</h2>
+                    </div>
+                    <div class="card">
+                        <span class="card-label">Total de Tarefas</span>
+                        <h2 id="totalTasks">0</h2>
+                    </div>
+                    <div class="card alert">
+                        <span class="card-label">Tarefas Atrasadas</span>
+                        <h2 id="overdueTasks">0</h2>
+                    </div>
+                    <div class="card warning">
+                        <span class="card-label">Alta Prioridade</span>
+                        <h2 id="highPriorityTasks">0</h2>
                     </div>
                 </div>
-            </section>
-        </main>
-    </div>
+
+                <!-- Gráficos baseados nos objetos da API -->
+                <div class="charts-grid">
+                    <div class="chart-container">
+                        <h3>Status do Projeto</h3>
+                        <div id="projects-canvas-container"><img src="../../" alt=""></div>
+                    </div>
+                    <div class="chart-container">
+                        <h3>Distribuição de Tarefas</h3>
+                        <canvas id="tasksChart"></canvas>
+                    </div>
+                </div>
+                <!-- Abaixo da sua <section class="charts-grid"> -->
+                <section class="full-width-chart">
+                    <div class="chart-card">
+                        <h3>Histórico de Atividade</h3>
+                        <div class="canvas-container-history">
+                            <canvas id="activityChart"></canvas>
+                        </div>
+                    </div>
+                </section>
+            </main>
+        </div>
     </main>
 
-    <script type="module" src="/frontend/src/js/navibar.js"></script>
+    <script type="module" src="/frontend/src/js/navBar.js"></script>
     <script src="./dashboardQuantitativo.js"></script>
 </body>
+
 </html>
