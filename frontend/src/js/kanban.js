@@ -194,7 +194,8 @@ function renderTasks(filter = '') {
     const filtered = tasks.filter(task => {
         const search = filter.toLowerCase();
         return (task.title?.toLowerCase() || '').includes(search) || 
-               (task.assignee?.toLowerCase() || '').includes(search);
+               (task.assignee?.toLowerCase() || '').includes(search) ||
+               (task.priority?.toLowerCase() || '').includes(search);
     });
 
     filtered.forEach(task => {
