@@ -31,8 +31,7 @@
                             <select id="deadlineFilterSelect">
                                 <option value="all">Todos os prazos</option>
                                 <option value="overdue">Atrasadas</option>
-                                <option value="soon">Até 3 dias</option>
-                                <option value="ok">Em dia</option>
+                                <option value="ongoing">Em andamento</option>
                                 <option value="done">Concluídas</option>
                             </select>
                         </label>
@@ -115,15 +114,11 @@
                             <span class="mini-alert-label">Atrasadas</span>
                             <strong id="alertOverdueCount" class="mini-alert-count">0</strong>
                         </div>
-                        <div class="mini-alert alert-today">
-                            <span class="mini-alert-label">Até 3 dias</span>
-                            <strong id="alertSoonCount" class="mini-alert-count">0</strong>
+                        <div class="mini-alert alert-ongoing">
+                            <span class="mini-alert-label">Em andamento</span>
+                            <strong id="alertOngoingCount" class="mini-alert-count">0</strong>
                         </div>
-                        <div class="mini-alert alert-soon">
-                            <span class="mini-alert-label">Em dia</span>
-                            <strong id="alertOkCount" class="mini-alert-count">0</strong>
-                        </div>
-                        <div class="mini-alert alert-ok">
+                        <div class="mini-alert alert-done">
                             <span class="mini-alert-label">Concluídas</span>
                             <strong id="alertDoneCount" class="mini-alert-count">0</strong>
                         </div>

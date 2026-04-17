@@ -32,8 +32,7 @@ const calendarElements = {
     emptyState: document.getElementById('emptyState'),
     retryBtn: document.getElementById('retryBtn'),
     alertOverdueCount: document.getElementById('alertOverdueCount'),
-    alertSoonCount: document.getElementById('alertSoonCount'),
-    alertOkCount: document.getElementById('alertOkCount'),
+    alertOngoingCount: document.getElementById('alertOngoingCount'),
     alertDoneCount: document.getElementById('alertDoneCount'),
     dayTasksModal: document.getElementById('dayTasksModal'),
     closeDayTasksModalBtn: document.getElementById('closeDayTasksModalBtn'),
@@ -74,8 +73,8 @@ function getFilteredTasks(tasks) {
         switch (currentDeadlineFilter) {
             case 'overdue':
                 return urgency === 'red';
+            case 'ongoing':
             case 'soon':
-                return urgency === 'yellow';
             case 'ok':
                 return urgency === 'blue';
             case 'done':
@@ -239,7 +238,7 @@ function clearTaskCounters() {
     const counters = document.querySelectorAll('.task-count');
     counters.forEach((counter) => {
         counter.textContent = '';
-        counter.classList.remove('task-count--red', 'task-count--yellow', 'task-count--green', 'task-count--blue');
+        counter.classList.remove('task-count--red', 'task-count--blue', 'task-count--green');
         counter.classList.add('hidden');
     });
 
@@ -269,10 +268,6 @@ function getTaskUrgency(task, todayDate) {
         return 'red';
     }
 
-    if (diffDays <= 3) {
-        return 'yellow';
-    }
-
     return 'blue';
 }
 
@@ -285,9 +280,8 @@ function renderTaskCounters(tasks) {
     today.setHours(0, 0, 0, 0);
 
     const urgencyPriority = {
-        blue: 0,
         green: 1,
-        yellow: 2,
+        blue: 2,
         red: 3
     };
 
@@ -334,7 +328,7 @@ function renderTaskCounters(tasks) {
         if (!counter) return;
 
         counter.textContent = String(summary.count);
-        counter.classList.remove('task-count--red', 'task-count--yellow', 'task-count--green', 'task-count--blue');
+        counter.classList.remove('task-count--red', 'task-count--blue', 'task-count--green');
         counter.classList.add(`task-count--${summary.urgency}`);
         counter.classList.remove('hidden');
     });
@@ -587,8 +581,7 @@ function closeDayTasksModal() {
 
 function renderDeadlineAlerts(tasks) {
     if (!calendarElements.alertOverdueCount
-        || !calendarElements.alertSoonCount
-        || !calendarElements.alertOkCount
+        || !calendarElements.alertOngoingCount
         || !calendarElements.alertDoneCount) {
         return;
     }
@@ -598,9 +591,8 @@ function renderDeadlineAlerts(tasks) {
 
     const alerts = {
         red: 0,
-        yellow: 0,
-        green: 0,
-        blue: 0
+        blue: 0,
+        green: 0
     };
 
     tasks.forEach((task) => {
@@ -609,8 +601,7 @@ function renderDeadlineAlerts(tasks) {
     });
 
     calendarElements.alertOverdueCount.textContent = String(alerts.red);
-    calendarElements.alertSoonCount.textContent = String(alerts.yellow);
-    calendarElements.alertOkCount.textContent = String(alerts.blue);
+    calendarElements.alertOngoingCount.textContent = String(alerts.blue);
     calendarElements.alertDoneCount.textContent = String(alerts.green);
 }
 
