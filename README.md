@@ -4,7 +4,7 @@
 
 O **Sistema de Gestão de Projetos - IJ** é uma solução centralizada desenvolvida para otimizar o acompanhamento e a execução dos projetos reais da Inteli Júnior. O sistema atua como um hub administrativo que consome dados em tempo real de uma API dedicada, transformando dados brutos em inteligência visual para gestores e consultores.
 
-[Link do projeto deployado](<link_aqui>)
+[Link do projeto deployado](https://trainee-inteli-jr-g1-ten.vercel.app/)
 
 O projeto foi estruturado em quatro pilares fundamentais de visualização:
 
@@ -159,16 +159,12 @@ Com base na transcrição dos feedbacks, as próximas iterações devem prioriza
 
 1. Ajustes Rápidos:
 
-    - Renomear Gráficos: Alterar o título do gráfico "Projetos por Status" para algo mais descritivo e melhorar a clareza das legendas dos demais gráficos no Dashboard.
-    - Clarificar Filtros do Calendário: Renomear as tags de "Em dia" e "Até 3 dias" para nomenclaturas inequívocas (ex: "No prazo" e "Vence em breve").
-    - Validação de Input: Adicionar um limite de valor máximo (ex: max="99") no campo numérico de horas estimadas no Kanban.
+    - Renomear Gráficos: Alterar o título do gráfico "Projetos por Status" para algo mais descritivo e melhorar a clareza das legendas dos demais gráficos no Dashboard. (Ajuste implementado)
+    - Clarificar Filtros do Calendário: Renomear as tags de "Em dia" e "Até 3 dias" para nomenclaturas inequívocas (ex: "No prazo" e "Vence em breve"). (Ajuste implementado)
+    - Validação de Input: Adicionar um limite de valor máximo (ex: max="99") no campo numérico de horas estimadas no Kanban. (Ajuste implementado)
 
 2. Melhorias de Funcionalidade e UI:
 
-    - Novos Filtros no Dashboard: Implementar dropdowns no topo do Dashboard para filtrar a visão de dados por "Semana" e "Responsável/Membro".
-    - Redesign dos Filtros do Calendário: Refatorar o CSS dos botões de filtro no calendário para que fiquem mais atraentes e alinhados com o design moderno dos cards do Kanban.
+    - Novos Filtros no Dashboard: Implementar dropdowns no topo do Dashboard para filtrar a visão de dados por "Responsável/Membro". (Ajuste implementado)
+    - Redesign dos Filtros do Calendário: Refatorar o CSS dos botões de filtro no calendário para que fiquem mais atraentes e alinhados com o design moderno dos cards do Kanban. (Ajuste implementado)
     - Adaptação Mobile: Aplicar Media Queries no CSS para tornar as telas utilizáveis em smartphones.
-
-3. Melhorias técnicas:
-
-    - Isolar todo css em um único arquivo global.
