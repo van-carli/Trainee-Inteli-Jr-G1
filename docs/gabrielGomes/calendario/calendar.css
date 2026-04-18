@@ -91,7 +91,7 @@ body .main-content::-webkit-scrollbar-corner {
 
 .topbar-filters {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 12px;
     flex-wrap: wrap;
     justify-content: flex-end;
@@ -100,13 +100,13 @@ body .main-content::-webkit-scrollbar-corner {
 .deadline-filter,
 .project-filter {
     display: inline-flex;
-    align-items: center;
+    align-items: stretch;
     gap: 10px;
     position: relative;
     isolation: isolate;
-    min-height: 46px;
-    min-width: 250px;
-    padding: 7px 38px 7px 12px;
+    min-height: 54px;
+    width: clamp(300px, 26vw, 380px);
+    padding: 14px 38px 8px 12px;
     border-radius: 14px;
     border: 1px solid var(--filter-border);
     background:
@@ -115,12 +115,14 @@ body .main-content::-webkit-scrollbar-corner {
         inset 0 1px 0 rgba(255, 255, 255, 0.06),
         0 6px 18px rgba(5, 6, 15, 0.35);
     transition: border-color 0.22s ease, box-shadow 0.22s ease, transform 0.22s ease;
+    cursor: pointer;
+    overflow: visible;
 }
 
 .deadline-filter::before,
 .project-filter::before {
     position: absolute;
-    top: -8px;
+    top: -9px;
     left: 12px;
     z-index: 1;
     padding: 1px 7px;
@@ -132,6 +134,7 @@ body .main-content::-webkit-scrollbar-corner {
     font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;
+    pointer-events: none;
 }
 
 .deadline-filter::before {
@@ -183,22 +186,28 @@ body .main-content::-webkit-scrollbar-corner {
     color: #ffd28b;
     font-size: 1.04rem;
     line-height: 1;
+    pointer-events: none;
 }
 
 #deadlineFilterSelect,
 #projectFilterSelect {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
     appearance: none;
     color-scheme: dark;
     border: none;
     outline: none;
     background: transparent;
     color: var(--text-main);
-    font-size: 1.02rem;
+    font-size: 0.94rem;
     font-weight: 700;
     letter-spacing: 0.01em;
-    padding-right: 2px;
+    padding: 14px 38px 8px 36px;
     cursor: pointer;
     width: 100%;
+    height: 100%;
+    line-height: 1.1;
     text-shadow: 0 1px 0 rgba(0, 0, 0, 0.35);
 }
 
@@ -224,7 +233,6 @@ body .main-content::-webkit-scrollbar-corner {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 12px;
     background: var(--bg-surface);
     border: 1px solid var(--border-soft);
     border-radius: 14px;

@@ -105,7 +105,7 @@ function renderProjectFilterOptions() {
 
     const currentValue = currentProjectFilter;
     const select = calendarElements.projectFilterSelect;
-    select.innerHTML = '<option value="all">Todos os projetos</option>';
+    select.innerHTML = '<option value="all">Filtro de projetos</option>';
 
     allProjects.forEach((project) => {
         const projectId = normalizeProjectId(project?.id ?? project?.projectId ?? project?.project_id);
